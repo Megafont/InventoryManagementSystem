@@ -1,0 +1,56 @@
+﻿
+<!--These using statements are commented out, since we moved them into _Imports.Blazor. This way they are all centralized in one place.
+    This way we don't have to repeat them here at the top of every component's file.-->
+<!--
+@using IMS.CoreBusiness
+@using IMS.UseCases.Inventories.Interfaces
+-->
+
+@inject IViewInventoriesByNameUseCase ViewInventoriesByNameUseCase
+
+<!--This commented out code block is the original super simple test implementation.-->
+<!--
+<ul>
+    @if (inventories is not null && inventories.Count > 0)
+    {
+        foreach (Inventory inventory in inventories)
+        {
+            <li>
+                @inventory.InventoryName
+            </li>
+        }
+    }
+</ul>
+-->
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (inventories is not null && inventories.Count > 0)
+        {
+            foreach (Inventory inventory in inventories)
+            {
+                <InventoryListItemComponent Inventory="inventory"></InventoryListItemComponent>
+            }
+        }
+    </tbody>
+</table>
+
+
+@code
+{
+    private List<Inventory>? inventories;
+
+    protected override async Task OnInitializedAsync()
+    {
+        inventories = (await ViewInventoriesByNameUseCase.ExecuteAsync("")).ToList();
+
+    }
+}

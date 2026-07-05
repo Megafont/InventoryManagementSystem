@@ -1,0 +1,40 @@
+﻿@page "/"
+
+<!--These using statements are commented out, since we moved them into _Imports.Blazor. This way they are all centralized in one place.
+    This way we don't have to repeat them here at the top of every component's file.-->
+<!--
+@using IMS.CoreBusiness
+@using IMS.UseCases.Inventories.Interfaces
+-->
+
+@inject IViewInventoriesByNameUseCase ViewInventoriesByNameUseCase
+
+
+<PageTitle>Test Page</PageTitle>
+
+<br/>
+<br/>
+
+<ul>
+@if (inventories is not null && inventories.Count > 0)
+{
+    foreach (Inventory inventory in inventories)
+    {
+        <li>
+            @inventory.InventoryName
+        </li>
+    }
+}
+</ul>
+
+@code
+{
+    private List<Inventory>? inventories;
+
+    protected override async Task OnInitializedAsync()
+    {
+        inventories = (await ViewInventoriesByNameUseCase.ExecuteAsync("")).ToList();
+
+
+    }
+}
