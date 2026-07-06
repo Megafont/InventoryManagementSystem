@@ -12,7 +12,7 @@
     
     IMPORTANT: The EditForm component must be given a name via the FormName attribute, as this is required by static SSR (server-side rendering).
 -->
-<EditForm Model="inventory" FormName="formInventory" OnValidSubmit="Save">
+<EditForm Model="_Inventory" FormName="formInventory" OnValidSubmit="Save">
     <!--This razor component uses the data annotation attributes we put in the Inventory class to specify how to validate each field.-->
     <DataAnnotationsValidator/>
     <!--This razor component displays ALL errors found by the validations done by the DataAnnotationsValidator component.-->
@@ -24,11 +24,11 @@
         <!--InputText is a built-in Blazor component that we're using rather than HTML's standard input tag.-->
         <InputText
             id="name"
-            @bind-Value="inventory.InventoryName"
+            @bind-Value="_Inventory.InventoryName"
             class="form-control">
         </InputText>
         <!--Unlike the ValidationSummary component above, this component shows only errors found in this field of the form.-->
-        <ValidationMessage For="() => inventory.InventoryName"></ValidationMessage>
+        <ValidationMessage For="() => _Inventory.InventoryName"></ValidationMessage>
     </div>
 
     <div class="form-group">
@@ -37,10 +37,10 @@
         <!--InputNumber is another built-in Blazor component.-->
         <InputNumber
             id="quantity"
-            @bind-Value="inventory.Quantity"
+            @bind-Value="_Inventory.Quantity"
             class="form-control">
         </InputNumber>
-        <ValidationMessage For="() => inventory.Quantity"></ValidationMessage>
+        <ValidationMessage For="() => _Inventory.Quantity"></ValidationMessage>
     </div>
 
     <div class="form-group">
@@ -49,10 +49,10 @@
         <!--InputNumber is another built-in Blazor component.-->
         <InputNumber
             id="price"
-            @bind-Value="inventory.Price"
+            @bind-Value="_Inventory.Price"
             class="form-control">
         </InputNumber>
-        <ValidationMessage For="() => inventory.Price"></ValidationMessage>
+        <ValidationMessage For="() => _Inventory.Price"></ValidationMessage>
     </div>
 
     <br/>
@@ -65,11 +65,11 @@
 @code 
 {
     [SupplyParameterFromForm]
-    private Inventory inventory { get; set; } = new Inventory();
+    private Inventory _Inventory { get; set; } = new Inventory();
 
     private async Task Save()
     {
-        await AddInventoryUseCase.ExecuteAsync(inventory);
+        await AddInventoryUseCase.ExecuteAsync(_Inventory);
 
         NavigationManager.NavigateTo("/inventories");
     }

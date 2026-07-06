@@ -8,11 +8,11 @@ using IMS.UseCases.PluginInterfaces;
 
 namespace IMS.UseCases.Inventories
 {
-	public class ViewInventoriesByNameUseCase : IViewInventoriesByNameUseCase
+	public class GetInventoriesByNameUseCase : IGetInventoriesByNameUseCase
 	{
 		private readonly IInventoryRepository _inventoryRepository;
 
-		public ViewInventoriesByNameUseCase(IInventoryRepository inventoryRepository)
+		public GetInventoriesByNameUseCase(IInventoryRepository inventoryRepository)
 		{
 			_inventoryRepository = inventoryRepository;
 		}

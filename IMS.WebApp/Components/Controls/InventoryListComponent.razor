@@ -6,7 +6,7 @@
 @using IMS.UseCases.Inventories.Interfaces
 -->
 
-@inject IViewInventoriesByNameUseCase ViewInventoriesByNameUseCase
+@inject IGetInventoriesByNameUseCase GetInventoriesByNameUseCase
 
 <!--This commented out code block is the original super simple test implementation.-->
 <!--
@@ -50,7 +50,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        inventories = (await ViewInventoriesByNameUseCase.ExecuteAsync("")).ToList();
+        inventories = (await GetInventoriesByNameUseCase.ExecuteAsync("")).ToList();
 
     }
 }

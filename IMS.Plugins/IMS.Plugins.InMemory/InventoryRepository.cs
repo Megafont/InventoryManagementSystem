@@ -18,13 +18,6 @@ namespace IMS.Plugins.InMemory
 			};
 		}
 
-		public async Task<IEnumerable<Inventory>> GetInventoriesByNameAsync(string name)
-		{
-			if (string.IsNullOrWhiteSpace(name))
-				return await Task.FromResult(_inventories);
-
-			return _inventories.Where(x => x.InventoryName.Contains(name, StringComparison.OrdinalIgnoreCase));
-		}
 
 		public Task AddInventoryAsync(Inventory inventory)
 		{
@@ -43,5 +36,41 @@ namespace IMS.Plugins.InMemory
 
 			return Task.CompletedTask;
 		}
+
+		public async Task<IEnumerable<Inventory>> GetInventoriesByNameAsync(string name)
+		{
+			if (string.IsNullOrWhiteSpace(name))
+				return await Task.FromResult(_inventories);
+
+			return _inventories.Where(x => x.InventoryName.Contains(name, StringComparison.OrdinalIgnoreCase));
+		}
+
+		public async Task<Inventory?> GetInventoryByIdAsync(int inventoryId)
+		{
+			return await Task.FromResult(_inventories.FirstOrDefault(x => x.InventoryID == inventoryId));
+		}
+
+		public Task UpdateInventoryAsync(Inventory inventory)
+		{
+			if (_inventories.Any(x => x.InventoryID != inventory.InventoryID &&
+			                     x.InventoryName.Equals(inventory.InventoryName, StringComparison.OrdinalIgnoreCase)))
+			{
+				return Task.CompletedTask;
+			}
+
+			var inventoryToUpdate = _inventories.FirstOrDefault(x => x.InventoryID == inventory.InventoryID);
+
+			if (inventoryToUpdate is not null)
+			{
+				// Can use Automapper here instead of copying all properties manually.
+				// The course said this is definitely better when you have 10+ properties to copy here.
+				inventoryToUpdate.InventoryName = inventory.InventoryName;
+				inventoryToUpdate.Quantity = inventory.Quantity;
+				inventoryToUpdate.Price = inventory.Price;
+			}
+
+			return Task.CompletedTask;
+		}
+
 	}
 }

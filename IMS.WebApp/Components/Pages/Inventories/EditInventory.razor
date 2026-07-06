@@ -1,0 +1,102 @@
+﻿@page "/editinventory/{inventoryID:int}"
+
+@inject NavigationManager NavigationManager
+@inject IGetInventoryByIdUseCase GetInventoryByIdUseCase
+@inject IEditInventoryUseCase EditInventoryUseCase
+
+<h3>EditInventory</h3>
+<br/>
+
+@if (_Inventory is not null)
+{
+    <!--In Blazor, we use the built-in EditForm component rather than the HTMLs Form tag.
+    Note that inventory here is referring to the private variable in the code block below.
+    Also note that Save here is referring to the private Save() method in the code block below.
+
+IMPORTANT: The EditForm component must be given a name via the FormName attribute, as this is required by static SSR (server-side rendering).
+-->
+    <EditForm Model="_Inventory" FormName="formInventory" OnValidSubmit="Update">
+        <!--This razor component uses the data annotation attributes we put in the Inventory class to specify how to validate each field.-->
+        <DataAnnotationsValidator />
+        <!--This razor component displays ALL errors found by the validations done by the DataAnnotationsValidator component.-->
+        <ValidationSummary />
+        
+        <!--Create a hidden Id field so that when we go to save the changes to the database, it will know which item to update in the database.-->
+        <InputNumber @bind-Value="_Inventory.InventoryID" hidden></InputNumber>
+
+        <div class="form-group">
+            <label for="name">Inventory Name</label>
+
+            <!--InputText is a built-in Blazor component that we're using rather than HTML's standard input tag.-->
+            <InputText id="name"
+                       @bind-Value="_Inventory.InventoryName"
+                       class="form-control">
+            </InputText>
+            <!--Unlike the ValidationSummary component above, this component shows only errors found in this field of the form.-->
+            <ValidationMessage For="() => _Inventory.InventoryName"></ValidationMessage>
+        </div>
+
+        <div class="form-group">
+            <label for="name">Quantity</label>
+
+            <!--InputNumber is another built-in Blazor component.-->
+            <InputNumber id="quantity"
+                         @bind-Value="_Inventory.Quantity"
+                         class="form-control">
+            </InputNumber>
+            <ValidationMessage For="() => _Inventory.Quantity"></ValidationMessage>
+        </div>
+
+        <div class="form-group">
+            <label for="name">Price</label>
+
+            <!--InputNumber is another built-in Blazor component.-->
+            <InputNumber id="price"
+                         @bind-Value="_Inventory.Price"
+                         class="form-control">
+            </InputNumber>
+            <ValidationMessage For="() => _Inventory.Price"></ValidationMessage>
+        </div>
+
+        <br />
+        <!--The type for this button must be submit so that it will submit the form when clicked. It won't work if the type is button.-->
+        <button type="submit" class="btn btn-primary">Update</button>
+
+        <a href="/inventories" class="btn btn-primary">Cancel</a>
+    </EditForm>
+
+}
+
+@code 
+{
+    // NOTE: The name of this property MUST be the same as the name of the routing parameter in the @page directive above. Otherwise (inventoryID).
+    //       This is NOT case-sensitive though, so InventoryID is also fine here.
+    [Parameter]
+    public int InventoryID { get; set; }
+
+    [SupplyParameterFromForm]
+    private Inventory _Inventory { get; set; }
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Here we use the null-coalescing assignment operator (??=) to only call the GetInventoryByIdUseCase if _Inventory is null.
+        // This is important because this method will be called multiple times during the lifecycle of the component, and we don't want to make unnecessary calls to the use case.
+        // More importantly, if we just use = here instead of ??=, then the _Inventory variable will be reset when the user clicks the Update button.
+        // This is because the HTTP post request that generates goes to this same page, which triggers the OnParametersSetAsync method again since this page takes a routing parameter.
+        _Inventory ??= await GetInventoryByIdUseCase.ExecuteAsync(InventoryID);
+
+        if (_Inventory is null)
+        {
+            // This call will be caught by the router in Routes.razor and will display the NotFound page.
+            NavigationManager.NotFound();
+        }
+    }
+
+    private async Task Update()
+    {
+        await EditInventoryUseCase.ExecuteAsync(_Inventory);
+
+        NavigationManager.NavigateTo("/inventories");
+    }
+}
