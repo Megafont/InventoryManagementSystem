@@ -33,9 +33,9 @@
         </tr>
     </thead>
     <tbody>
-        @if (inventories is not null && inventories.Count > 0)
+        @if (_inventories is not null && _inventories.Count > 0)
         {
-            foreach (Inventory inventory in inventories)
+            foreach (Inventory inventory in _inventories)
             {
                 <InventoryListItemComponent Inventory="inventory"></InventoryListItemComponent>
             }
@@ -46,11 +46,20 @@
 
 @code
 {
-    private List<Inventory>? inventories;
+    private List<Inventory>? _inventories;
 
-    protected override async Task OnInitializedAsync()
+    [Parameter] 
+    public string? SearchInventoryFilter { get; set; }
+
+    /// <summary>
+    /// This method is called when the component's parameters are set or updated. It fetches the list of inventories based on the search filter.
+    /// </summary>
+    /// <remarks>
+    /// Previously, this was the OnInitializedAsync method, but it was changed to OnParametersSetAsync to ensure that the inventory list is updated
+    /// whenever the SearchInventoryFilter parameter changes.
+    /// </remarks>
+    protected override async Task OnParametersSetAsync()
     {
-        inventories = (await GetInventoriesByNameUseCase.ExecuteAsync("")).ToList();
-
+        _inventories = (await GetInventoriesByNameUseCase.ExecuteAsync(SearchInventoryFilter ?? "")).ToList();
     }
 }
