@@ -1,4 +1,9 @@
 ﻿
+@if (_searchFilter is null)
+{
+    _searchFilter = string.Empty;
+}
+
 <!-- We added Enhance="true" here to enable enhanced form handling. We can also call this partial page rendering.
      It causes only the part of the page that needs to be updated to be re-rendered, rather than the entire page. 
      This is useful for performance and user experience, especially in larger applications, as it means we don't
@@ -12,7 +17,8 @@
         </InputText>
 
         <button type="submit"
-                class="btn-success input-group-text">
+                class="btn-success input-group-text"
+                style="color: white; background-color: darkgreen;">
             Search
         </button>
     </div>

@@ -1,4 +1,5 @@
-﻿using IMS.CoreBusiness;
+﻿using System.Runtime.CompilerServices;
+using IMS.CoreBusiness;
 using IMS.UseCases.PluginInterfaces;
 
 namespace IMS.Plugins.InMemory
@@ -33,6 +34,16 @@ namespace IMS.Plugins.InMemory
 			inventory.InventoryID = maxID + 1;
 
 			_inventories.Add(inventory);
+
+			return Task.CompletedTask;
+		}
+
+		public Task DeleteInventoryByIdAsync(int inventoryID)
+		{
+			Inventory inventory = _inventories.FirstOrDefault(x => x.InventoryID == inventoryID);
+
+			if (inventory != null)
+				_inventories.Remove(inventory);
 
 			return Task.CompletedTask;
 		}
