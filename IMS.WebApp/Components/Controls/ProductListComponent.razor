@@ -1,0 +1,51 @@
+﻿
+<!--These using statements are commented out, since we moved them into _Imports.Blazor. This way they are all centralized in one place.
+    This way we don't have to repeat them here at the top of every component's file.-->
+<!--
+@using IMS.CoreBusiness
+@using IMS.UseCases.Products.Interfaces
+-->
+
+@inject IGetProductsByNameUseCase GetProductsByNameUseCase
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th></th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (_products is not null && _products.Count > 0)
+        {
+            foreach (Product product in _products)
+            {
+                <ProductListItemComponent Product="product"></ProductListItemComponent>
+            }
+        }
+    </tbody>
+</table>
+
+
+@code
+{
+    private List<Product>? _products;
+
+    [Parameter] 
+    public string? SearchProductFilter { get; set; }
+
+    /// <summary>
+    /// This method is called when the component's parameters are set or updated. It fetches the list of inventories based on the search filter.
+    /// </summary>
+    /// <remarks>
+    /// Previously, this was the OnInitializedAsync method, but it was changed to OnParametersSetAsync to ensure that the product list is updated
+    /// whenever the SearchProductFilter parameter changes.
+    /// </remarks>
+    protected override async Task OnParametersSetAsync()
+    {
+        _products = (await GetProductsByNameUseCase.ExecuteAsync(SearchProductFilter ?? "")).ToList();
+    }
+}
