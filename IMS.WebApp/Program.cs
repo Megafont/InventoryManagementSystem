@@ -30,6 +30,7 @@ builder.Services.AddTransient<IGetInventoryByIdUseCase, GetInventoryByIdUseCase>
 builder.Services.AddSingleton<IProductRepository, ProductRepository>();
 
 builder.Services.AddTransient<IGetProductsByNameUseCase, GetProductsByNameUseCase>();
+builder.Services.AddTransient<IAddProductUseCase, AddProductUseCase>();
 builder.Services.AddTransient<IDeleteProductByIdUseCase, DeleteProductByIdUseCase>();
 
 

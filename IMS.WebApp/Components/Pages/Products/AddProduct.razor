@@ -1,0 +1,84 @@
+﻿@page "/addproduct"
+
+@rendermode InteractiveServer // Locks this component into the Interactive Server rendering mode.
+
+@inject IAddProductUseCase AddProductUseCase
+@inject NavigationManager NavigationManager
+
+<h3>Add Product</h3>
+<br/>
+
+<!--In Blazor, we use the built-in EditForm component rather than the HTMLs Form tag.
+    Note that product here is referring to the private variable in the code block below.
+    Also note that Save here is referring to the private Save() method in the code block below.
+    
+    IMPORTANT: The EditForm component must be given a name via the FormName attribute, as this is required by static SSR (server-side rendering).
+    
+    NOTE: You may also notice that tyhe FormName attribute has been removed here. This is because it is not required when using the
+          interactive SSR (server-side rendering) render mode, which we are using here. However, if you switch to static SSR mode, you will need to add the FormName attribute back in.
+-->
+<EditForm Model="_Product" OnValidSubmit="Save">
+    <!--This razor component uses the data annotation attributes we put in the Product class to specify how to validate each field.-->
+    <DataAnnotationsValidator/>
+    <!--This razor component displays ALL errors found by the validations done by the DataAnnotationsValidator component.-->
+    <ValidationSummary/>
+
+    <div class="form-group">
+        <label for="name">Product Name</label>
+
+        <!--InputText is a built-in Blazor component that we're using rather than HTML's standard input tag.-->
+        <InputText
+            id="name"
+            @bind-Value="_Product.ProductName"
+            class="form-control">
+        </InputText>
+        <!--Unlike the ValidationSummary component above, this component shows only errors found in this field of the form.-->
+        <ValidationMessage For="() => _Product.ProductName"></ValidationMessage>
+    </div>
+
+    <div class="form-group">
+        <label for="name">Quantity</label>
+
+        <!--InputNumber is another built-in Blazor component.-->
+        <InputNumber
+            id="quantity"
+            @bind-Value="_Product.Quantity"
+            class="form-control">
+        </InputNumber>
+        <ValidationMessage For="() => _Product.Quantity"></ValidationMessage>
+    </div>
+
+    <div class="form-group">
+        <label for="name">Price</label>
+
+        <!--InputNumber is another built-in Blazor component.-->
+        <InputNumber
+            id="price"
+            @bind-Value="_Product.Price"
+            class="form-control">
+        </InputNumber>
+        <ValidationMessage For="() => _Product.Price"></ValidationMessage>
+    </div>
+
+    <br/>
+    <!--The type for this button must be submit so that it will submit the form when clicked. It won't work if the type is button.-->
+    <button type="submit" class="btn btn-primary">Save</button>
+    
+    <a href="/products" class="btn btn-primary">Cancel</a>
+</EditForm>
+
+@code 
+{
+    // You may notice that the [SupplyParameterFromForm] attribute has been removed from this field.
+    // This is because it is not necessary when using the interactive SSR (server-side rendering) render mode, which we are using here. However, if you switch to static SSR mode, you will need to add the [SupplyParameterFromForm] attribute back in.
+    // When using the interactive SSR render mode, the form data is automatically supplied to the model without needing the [SupplyParameterFromForm] attribute. There is no post back to the server, because it is instead communicating with the
+    // server via the SignalR connection, which is what makes it interactive. This is why the [SupplyParameterFromForm] attribute is not needed in this case.
+    private Product _Product { get; set; } = new Product();
+
+    private async Task Save()
+    {
+        await AddProductUseCase.ExecuteAsync(_Product);
+
+        NavigationManager.NavigateTo("/products");
+    }
+}
