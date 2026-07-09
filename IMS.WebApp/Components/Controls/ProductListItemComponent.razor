@@ -1,5 +1,6 @@
 ﻿
 @inject IGetProductsByNameUseCase GetProductsByNameUseCase
+@inject IDeleteProductByIdUseCase DeleteProductByIdUseCase
 
 @if (this.Product is not null)
 {
@@ -9,13 +10,19 @@
         <td>@Product.Price</td>
         <td>
             <a class="btn btn-light"
-               style="background-color: wheat;"
+               style="background-color: antiquewhite; color: black;"
                href="/editproduct/@Product.ProductID">
                 Edit
             </a>
         </td>
         <td>
-
+            <!--NOTE: This button is using interactive SSR (server-side rendering), so it must be enabled for this to work. See the two changes in program.cs that are needed to enable this.-->
+            <!--      We also set the rendermode on the ProductListComponent to enable this for it and all of its child components.-->
+            <button
+                type="button"
+                class="btn btn-light"
+                style="color: white; background-color: crimson;"
+                @onclick="async () => { await HandleDelete(Product.ProductID); }">Delete</button>
         </td>
     </tr>
 }
@@ -25,4 +32,12 @@
     [Parameter]
     public Product? Product { get; set; }
 
+    private async Task HandleDelete(int productID)
+    {
+        await DeleteProductByIdUseCase.ExecuteAsync(productID);
+
+        // Set our state variable to null.
+        // Changing the component's state variable will cause the component to re-render, and since the Product is now null, it will not render anything.
+        this.Product = null;
+    }
 }

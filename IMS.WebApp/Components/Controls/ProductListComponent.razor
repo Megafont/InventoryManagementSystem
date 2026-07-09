@@ -8,6 +8,14 @@
 
 @inject IGetProductsByNameUseCase GetProductsByNameUseCase
 
+
+<!-- This rendermode directive locks this component into the Interactive Server rendering mode. This is not recommended, though, as it applies to this entire component.
+     We only need to set this on the ProductListItemComponent, since that is the only component that needs to be interactive. However, we are leaving this here for demonstration purposes.
+     NOTE: I prepended the rendermode directive below with an f so it sees it as a comment, otherwise it still thinks it's an actual directive for some reason. Prepending it with
+           any alphanumeric character seems to stop it from doing that.
+f@rendermode InteractiveServer
+-->
+
 <table class="table">
     <thead>
         <tr>
@@ -23,7 +31,8 @@
         {
             foreach (Product product in _products)
             {
-                <ProductListItemComponent Product="product"></ProductListItemComponent>
+                <!-- Adding "rendermode="InteractiveServer" here means this component and all child components will use interactive SSR (server-side rendering).-->
+                <ProductListItemComponent @rendermode="InteractiveServer" Product="product"></ProductListItemComponent>
             }
         }
     </tbody>

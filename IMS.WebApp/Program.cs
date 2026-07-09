@@ -14,7 +14,8 @@ using IMS.WebApp.Components;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddRazorComponents();
+builder.Services.AddRazorComponents()
+	.AddInteractiveServerComponents(); // Enables interactive SSR (server side rendering), which were using on the products page. On the other hand, the inventories page is using static SSR (non-interactive SSR). There is another function like this one below on the app.MapRazorComponents() call.
 
 
 builder.Services.AddSingleton<IInventoryRepository, InventoryRepository>();
@@ -29,6 +30,7 @@ builder.Services.AddTransient<IGetInventoryByIdUseCase, GetInventoryByIdUseCase>
 builder.Services.AddSingleton<IProductRepository, ProductRepository>();
 
 builder.Services.AddTransient<IGetProductsByNameUseCase, GetProductsByNameUseCase>();
+builder.Services.AddTransient<IDeleteProductByIdUseCase, DeleteProductByIdUseCase>();
 
 
 var app = builder.Build();
@@ -48,6 +50,7 @@ app.UseHttpsRedirection();
 app.UseAntiforgery();
 
 app.MapStaticAssets();
-app.MapRazorComponents<App>();
+app.MapRazorComponents<App>()
+	.AddInteractiveServerRenderMode(); // Enables interactive SSR (server side rendering), which were using on the products page. On the other hand, the inventories page is using static SSR (non-interactive SSR). There is another function like this one above on the builder.Services.AddRazorComponents() call.
 
 app.Run();
