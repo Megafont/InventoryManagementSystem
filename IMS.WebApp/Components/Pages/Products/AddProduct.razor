@@ -59,6 +59,11 @@
         </InputNumber>
         <ValidationMessage For="() => _Product.Price"></ValidationMessage>
     </div>
+    
+    <div class="form-group">
+        <label for="name">Parts</label>
+        <ProductInventoriesComponent Product="_Product"/>
+    </div>
 
     <br/>
     <!--The type for this button must be submit so that it will submit the form when clicked. It won't work if the type is button.-->

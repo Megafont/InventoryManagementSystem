@@ -1,0 +1,97 @@
+﻿
+<div class="card">
+    <div class="card-body">
+
+
+    <SearchProductInventoriesComponent OnInventorySelected="HandleInventorySelected" />
+
+    @if (
+        Product is not null &&
+        Product.ProductInventories is not null &&
+        Product.ProductInventories.Count > 0
+    )
+    {
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Quantity</th>
+                <th>Cost</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+                @foreach (var productInventory in Product.ProductInventories)
+                {
+                    <tr>
+                        <td valign="middle">
+                            &emsp;
+                            @productInventory.Inventory?.InventoryName
+                        </td>
+                        <td valign="middle">
+                            <input
+                                type="number"
+                                min="0"
+                                @bind-value="productInventory.InventoryQuantity"
+                                @bind-value:event="oninput"
+                                @bind:after="() => HandleQuantityChanged(productInventory)">
+                        </td>
+
+                        @if (productInventory.Inventory == null)
+                        {
+                            <td valign="middle">
+                                $0.00
+                            </td>
+                        }
+                        else
+                        {
+                            <td valign="middle">
+                                @((productInventory.TotalCost).ToString("C"))
+                            </td>
+                        }
+
+                        <td valign="middle">
+                            <button
+                                type="button"
+                                class="btn btn-link"
+                                @onclick="() => RemoveInventory(productInventory)">
+                                Remove
+                            </button>
+                        </td>
+                    </tr>
+                } <!--end foreach-->
+                
+                <tr>
+                    <td valign="middle"><b>Total Parts Cost:</b> @((Product.ProductInventories.Sum(x => x.TotalCost)).ToString("C"))</td>
+                    <td valign="middle"></td>
+                    <td valign="middle"></td>
+                    <td valign="middle"></td>
+                </tr>
+                </tbody>
+        </table>
+    }
+
+    </div>
+</div>
+
+
+@code 
+{
+    [Parameter]
+    public Product? Product { get; set; }
+
+    private void RemoveInventory(ProductInventory productInventory)
+    {
+        Product?.RemoveInventory(productInventory);
+    }
+
+    private void HandleInventorySelected(Inventory inventory)
+    {
+        Product?.AddInventory(inventory);
+    }
+
+    private void HandleQuantityChanged(ProductInventory productInventory)
+    {
+        
+    }
+}

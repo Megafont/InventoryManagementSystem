@@ -1,0 +1,29 @@
+﻿body 
+{
+}
+
+.search-result 
+{
+    overflow-y: auto;
+    max-height: 300px;
+    border: 1px solid silver;
+    padding-top: 5px
+}
+
+/*
+    This style tells our onordered lists to not display bullet points next to each item.
+    This could also be set in the style attribute of the ul element instead, but its clearner to move it into a static CSS file for the component
+    like we did here.
+*/
+div ul
+{
+    list-style-type: none;
+}
+
+/*
+    This style tells our unordered list items to change the cursor to a pointer when hovered over, indicating to the user that they are clickable.
+*/
+div ul li
+{
+    cursor: pointer
+}
