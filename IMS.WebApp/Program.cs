@@ -32,6 +32,8 @@ builder.Services.AddSingleton<IProductRepository, ProductRepository>();
 builder.Services.AddTransient<IGetProductsByNameUseCase, GetProductsByNameUseCase>();
 builder.Services.AddTransient<IAddProductUseCase, AddProductUseCase>();
 builder.Services.AddTransient<IDeleteProductByIdUseCase, DeleteProductByIdUseCase>();
+builder.Services.AddTransient<IEditProductUseCase, EditProductUseCase>();
+builder.Services.AddTransient<IGetProductByIdUseCase, GetProductByIdUseCase>();
 
 
 var app = builder.Build();

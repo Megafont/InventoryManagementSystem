@@ -18,7 +18,7 @@ namespace IMS.UseCases.Inventories
 			_productRepository = productRepository;
 		}
 
-		public async Task<Product> ExecuteAsync(int productID)
+		public async Task<Product?> ExecuteAsync(int productID)
 		{
 			return await _productRepository.GetProductByIdAsync(productID);
 		}

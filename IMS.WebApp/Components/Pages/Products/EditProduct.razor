@@ -1,0 +1,106 @@
+﻿@page "/editproduct/{id:int}"
+
+@rendermode InteractiveServer
+
+@inject NavigationManager NavigationManager
+@inject IGetProductByIdUseCase GetProductByIdUseCase
+@inject IEditProductUseCase EditProductUseCase
+
+
+<h3>Add Inventory</h3>
+<br />
+
+@if (_product != null)
+{
+    <!--In Blazor, we use the built-in EditForm component rather than the HTML Form tag.
+    Note that product here is referring to the private variable in the code block below.
+    Also note that Save here is referring to the private Save() method in the code block below.
+
+IMPORTANT: The EditForm component must be given a name via the FormName attribute, as this is required by static SSR (server-side rendering).
+
+NOTE: You may also notice that tyhe FormName attribute has been removed here. This is because it is not required when using the
+          interactive SSR (server-side rendering) render mode, which we are using here. However, if you switch to static SSR mode, you will need to add the FormName attribute back in.
+-->
+    <EditForm Model="_product" OnValidSubmit="Update">
+        <!--This razor component uses the data annotation attributes we put in the Product class to specify how to validate each field.-->
+        <DataAnnotationsValidator/>
+        <!--This razor component displays ALL errors found by the validations done by the DataAnnotationsValidator component.-->
+        <ValidationSummary/>
+
+        <div class="form-group">
+            <label for="name">Product Name</label>
+
+            <!--InputText is a built-in Blazor component that we're using rather than HTML's standard input tag.-->
+            <InputText id="name"
+                       @bind-Value="_product.ProductName"
+                       class="form-control">
+            </InputText>
+            <!--Unlike the ValidationSummary component above, this component shows only errors found in this field of the form.-->
+            <ValidationMessage For="() => _product.ProductName"></ValidationMessage>
+        </div>
+
+        <div class="form-group">
+            <label for="name">Quantity</label>
+
+            <!--InputNumber is another built-in Blazor component.-->
+            <InputNumber id="quantity"
+                         @bind-Value="_product.Quantity"
+                         class="form-control">
+            </InputNumber>
+            <ValidationMessage For="() => _product.Quantity"></ValidationMessage>
+        </div>
+
+        <div class="form-group">
+            <label for="name">Price</label>
+
+            <!--InputNumber is another built-in Blazor component.-->
+            <InputNumber id="price"
+                         @bind-Value="_product.Price"
+                         class="form-control">
+            </InputNumber>
+            <ValidationMessage For="() => _product.Price"></ValidationMessage>
+        </div>
+
+        <div class="form-group">
+            <label for="name">Parts</label>
+            <ProductInventoriesComponent Product="_product"/>
+        </div>
+
+        <br/>
+        <!--The type for this button must be submit so that it will submit the form when clicked. It won't work if the type is button.-->
+        <button type="submit" class="btn btn-primary">Update</button>
+        
+        <!--This could be implemented as a button like the Update button above, but its type would need to be set to "button"" instead of "submit".-->
+        <a href="/products" class="btn btn-primary">Cancel</a>
+    </EditForm>
+}
+
+
+@code 
+{
+    private Product? _product;
+
+    // NOTE: The name of this property must match the name of the routing parameter (id) in the page directive at the top of this file. It does not have to be a case-sensitive match, though.
+    [Parameter]
+    public int ID { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _product = await GetProductByIdUseCase.ExecuteAsync(ID);
+
+        if (_product == null)
+        {
+            NavigationManager.NotFound();
+        }
+    }
+
+    private async Task Update()
+    {
+        if (_product != null)
+        {
+            await EditProductUseCase.ExecuteAsync(_product);
+
+            NavigationManager.NavigateTo("/products");
+        }
+    }
+}

@@ -58,7 +58,18 @@ namespace IMS.Plugins.InMemory
 
 		public async Task<Inventory?> GetInventoryByIdAsync(int inventoryId)
 		{
-			return await Task.FromResult(_inventories.FirstOrDefault(x => x.InventoryID == inventoryId));
+			var inventory = _inventories.First(x => x.InventoryID == inventoryId);
+
+			// Make a copy of the inventory object before returning it to stop outside code being able to modify the inventory object in the repository directly. This won't be necessary once we're using a real database.
+			var copy = new Inventory
+			{
+				InventoryID = inventory.InventoryID,
+				InventoryName = inventory.InventoryName,
+				Price = inventory.Price,
+				Quantity = inventory.Quantity
+			};
+
+			return await Task.FromResult(copy);
 		}
 
 		public Task UpdateInventoryAsync(Inventory inventory)
