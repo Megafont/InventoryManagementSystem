@@ -1,7 +1,4 @@
-﻿body 
-{
-}
-
+﻿
 .search-result 
 {
     overflow-y: auto;
@@ -15,9 +12,11 @@
     This could also be set in the style attribute of the ul element instead, but its clearner to move it into a static CSS file for the component
     like we did here.
 */
-div ul
+div ul 
 {
     list-style-type: none;
+    margin-bottom: 5px;
+    padding-left: 10px;
 }
 
 /*

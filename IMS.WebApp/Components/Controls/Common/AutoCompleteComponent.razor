@@ -1,0 +1,149 @@
+﻿<div class="form-group">
+    <label for="search">@Label</label>
+    <input
+        type="text"
+        class="form-control"
+        @bind-value="UserInput"
+        @bind-value:event="oninput"
+        @onkeyup="OnKeyUp"/>
+</div>
+
+@if (_searchResults != null && _searchResults.Count > 0)
+{
+    <!--This div is creating a drop-down list essentially. The style here is telling the div to add a vertical scrollbar. Then we set the max-height for this div.-->
+    <div class="search-result">
+
+        <!--The style attribute in this ul tag is telling it to not show bullet points.-->
+        <ul>
+
+            <!--This is a code block, but for some reason if you put the word code after this at like below, it causes errors in the code inside this block.-->
+            @{
+                int itemIndex = 0;
+                foreach (var item in _searchResults)
+                {
+                    /*
+                    IMPORTANT:
+                    We are setting the list item's key equal to the inventory ID of the inventory it represents. This allows Blazor to tell which list item is which
+                    so it can update only the ones that have changed, rather than re-rendering the entire list every time the user searches. This is useful for performance
+                    if there are a large number of inventories.
+
+                    We also set the cursor style to pointer here so that the user knows they can click on the inventory name to select it. This is a common UI pattern for clickable items.
+
+                    The value of the class attribute here is using Razor Explicit Syntax to specify a variable value using a bit of C# code.
+                    */
+                    <li @key="item.ID"
+                        class="@(itemIndex == _currentItemIndex ? "selected" : "")"
+                        @onclick="() => HandleSelectItem(item)">
+
+                        @item.Name
+                    </li>
+
+                    itemIndex++;
+                }
+            }
+
+        </ul>
+
+    </div>
+}
+
+@code 
+{
+    [Parameter] 
+    public string Label { get; set; } = string.Empty;
+
+    [Parameter]
+    public Func<string, List<ItemViewModel>?>? SearchFunction { get; set; }
+
+    [Parameter]
+    public EventCallback<ItemViewModel> OnItemSelected { get; set; }
+
+
+    private List<ItemViewModel>? _searchResults = null;
+
+    private ItemViewModel? _selectedItem = null;
+
+    private string _userInput = string.Empty;
+
+    public string UserInput
+    {
+        get => _userInput;
+        set
+        {
+            _userInput = value;
+
+            if (!string.IsNullOrWhiteSpace(_userInput) && SearchFunction != null)
+            {
+                _searchResults = SearchFunction(_userInput);
+            }
+        }
+    }
+
+
+    // These two fields are used by the OnKeyUp method, which implements the functionality of allowing the user to move through the list of search results by
+    // pressing the up and down arrow keys on the keyboard.
+    private ItemViewModel? _currentItem = null;
+    private int _currentItemIndex = -1;
+
+
+    private void HandleSelectItem(ItemViewModel? item)
+    {
+        ClearHighlighting();
+
+        if (item != null)
+        {
+            _selectedItem = item;
+
+            // Fill the input box with the full name of the selected item.
+            _userInput = item?.Name ?? string.Empty;
+
+            // Clear the search results variable so that the drop-down list is now empty, and thus disappears from the UI.
+            _searchResults = null;
+
+            OnItemSelected.InvokeAsync(item);
+        }
+    }
+
+    private void ClearHighlighting()
+    {
+        _searchResults = null;
+        _currentItem = null;
+        _currentItemIndex = -1;
+    }
+
+    private void OnKeyUp(KeyboardEventArgs e)
+    {
+        if (_searchResults != null && 
+            _searchResults.Count > 0 &&
+            (e.Code == "ArrowDown" || e.Code == "ArrowUp"))
+        {
+            if (e.Code == "ArrowDown" && _currentItemIndex < _searchResults.Count - 1)
+            {
+                _currentItem = _searchResults[++_currentItemIndex];
+            }
+            else if (e.Code == "ArrowUp")
+            {
+                if (_currentItemIndex > 0)
+                {
+                    _currentItem = _searchResults[--_currentItemIndex];
+                }
+                else
+                {
+                    _currentItem = null;
+                    _currentItemIndex = -1;
+                }
+            }
+        }
+        else if (e.Code == "Enter" || e.Code == "NumpadEnter")
+        {
+            HandleSelectItem(_currentItem);
+        }
+    }
+
+
+    public class ItemViewModel
+    {
+        public int ID { get; set; }
+        public string Name { get; set; } = string.Empty;
+    }
+}
