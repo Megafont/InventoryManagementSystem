@@ -15,16 +15,31 @@ namespace IMS.Plugins.InMemory
 			_inventoryTransactions.Add(new InventoryTransaction()
 			{
 				PurchaseOrderNumber = poNumber,
-				InventoryId = inventory.InventoryID,
+				InventoryID = inventory.InventoryID,
 				QuantityBefore = inventory.Quantity,
-				ActivityType = InventoryTransactionType.PurchaseInventory,
+				ActivityType = InventoryTransactionTypes.PurchaseInventory,
 				QuantityAfter = inventory.Quantity + quantity,
 				TransactionDate = DateTime.Now, // In real life this would be DateTime.UtcNow in a company that spans multiple time zones.
-				PurchasedBy = purchasedBy,
+				DoneBy = purchasedBy,
 				UnitPrice = price,
 			});
 
 			return Task.CompletedTask;
+		}
+
+		public Task ProduceAsync(string productionNumber, Inventory inventory, int quantityToConsume, string producedBy, decimal price)
+		{
+			_inventoryTransactions.Add(new InventoryTransaction
+			{
+				ProductionNumber = productionNumber,
+				InventoryID = inventory.InventoryID,
+				QuantityBefore = inventory.Quantity,
+				ActivityType = InventoryTransactionTypes.ProduceProduct,
+				QuantityAfter = inventory.Quantity - quantityToConsume,
+				TransactionDate = DateTime.Now, // In real life this would be DateTime.UtcNow in a company that spans multiple time zones.
+				DoneBy = producedBy,
+				UnitPrice = price
+			});
 		}
 	}
 }

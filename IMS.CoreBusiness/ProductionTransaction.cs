@@ -5,32 +5,32 @@ using System.Text;
 
 namespace IMS.CoreBusiness
 {
-	public class InventoryTransaction
+	public class ProductionTransaction
 	{
-		public int InventoryTransactionID { get; set; }
-		public string PurchaseOrderNumber { get; set; } = string.Empty;
+		public int ProductionTransactionID { get; set; }
+		public string SalesOrderNumber { get; set; } = string.Empty;
 		public string ProductionNumber { get; set; } = string.Empty;
 
 		[Required]
-		public int InventoryID { get; set; }
+		public int ProductID { get; set; }
 
 		[Required]
 		public int QuantityBefore { get; set; }
 		[Required]
-		public InventoryTransactionTypes ActivityType { get; set; }
+		public ProductTransactionTypes ActivityType { get; set; }
 
 		[Required]
 		public int QuantityAfter { get; set; }
 
 		[Required]
-		public decimal UnitPrice { get; set; }
+		public decimal? UnitPrice { get; set; }
 
 		[Required]
 		public DateTime TransactionDate { get; set; }
 		[Required] 
 		public string DoneBy { get; set; } = string.Empty;
 
-		public Inventory Inventory { get; set; }
+		public Product Product { get; set; }
 	}
 
 }
