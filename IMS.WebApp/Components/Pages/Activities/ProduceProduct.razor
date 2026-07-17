@@ -1,0 +1,97 @@
+﻿@page "/produceproduct"
+
+@rendermode InteractiveServer
+
+@using IMS.UseCases.Inventories
+@using static IMS.WebApp.Components.Controls.Common.AutoCompleteComponent
+
+@inject IGetProductsByNameUseCase GetProductsByNameUseCase
+@inject IGetProductByIdUseCase GetProductByIdUseCase
+@inject IProduceProductUseCase ProduceProductUseCase
+
+<h3>Produce Product</h3>
+<br/>
+
+<EditForm Model="_produceViewModel" OnValidSubmit="Produce">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="po">Production #</label>
+        <InputText id="po"
+                   class="form-control"
+                   @bind-Value="_produceViewModel.ProductionNumber" />
+    </div>
+
+    <br />
+
+    <div class="card">
+        <div class="card=body">
+            <div class="form-group">
+                <AutoCompleteComponent Label="Product to Produce"
+                                       SearchFunction="SearchProduct"
+                                       OnItemSelected="OnItemSelected" />
+            </div>
+        </div>
+    </div>
+
+    <br />
+
+    <div class="form-group">
+        <label for="qty">Quantity</label>
+        <InputNumber id="qty"
+                     class="form-control"
+                     @bind-Value="_produceViewModel.QuantityToProduce" />
+    </div>
+
+    <br />
+
+    <button type="submit"
+            class="btn btn-primary">
+        Produce
+    </button>
+
+</EditForm>
+
+@code 
+{
+    private ProduceProductViewModel _produceViewModel = new();
+    private Product? _selectedProduct;
+
+
+    private List<ItemViewModel>? SearchProduct(string searchFilter)
+    {
+        // We are using ".GetAwaiter().GetResult()" here because ExecuteAsync() is an asynchronous method, but this SearchProduct method is synchronous.
+        // This is a common pattern in C# when you need to call an async method from an async context. However, be cautious with this approach, as it can
+        // lead to deadlocks in certain scenarios. In this case, it's safe because we are in a Blazor component and not in a UI thread context.
+        var list = GetProductsByNameUseCase.ExecuteAsync(searchFilter).GetAwaiter().GetResult();
+        if (list is null)
+            return null;
+
+        // This is called projection. We are projecting the list of found products from type IEnumerable<Product> to type List<ItemViewModel>.
+        // This is a common pattern in C# when you want to transform a collection of one type into a collection of another type.
+        return list.Select(x => new ItemViewModel() { ID = x.ProductID, Name = x.ProductName })?.ToList();
+    }
+
+    private async Task OnItemSelected(ItemViewModel item)
+    {
+        _selectedProduct = await GetProductByIdUseCase.ExecuteAsync(item.ID);
+
+        _produceViewModel.ProductID = item.ID;
+        _produceViewModel.Product = _selectedProduct;
+    }
+
+    private async Task Produce()
+    {
+        await ProduceProductUseCase.ExecuteAsync(
+            _produceViewModel.ProductionNumber,
+            _selectedProduct,
+            _produceViewModel.QuantityToProduce,
+            "Mike"); // This name is just temporarily hard coded for now.
+
+        // Create a new ProduceProductViewModel. This causes the UI to be cleared since this variable now has all empty fields.
+        _produceViewModel = new();
+        
+        _selectedProduct = null;
+    }
+}

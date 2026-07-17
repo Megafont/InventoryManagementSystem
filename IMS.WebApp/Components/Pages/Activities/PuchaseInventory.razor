@@ -34,7 +34,7 @@
                 <AutoCompleteComponent 
                     Label="Inventory to Purchase"
                     SearchFunction="SearchInventory"
-                    OnItemSelected="HandleItemSelected"/>
+                    OnItemSelected="OnItemSelected"/>
         
                 @if (_purchaseViewModel.InventoryID > 0 && _purchaseViewModel.InventoryPrice >= 0)
                 {
@@ -86,7 +86,7 @@
         return list.Select(x => new ItemViewModel() { ID = x.InventoryID, Name = x.InventoryName })?.ToList();
     }
 
-    private async Task HandleItemSelected(ItemViewModel item)
+    private async Task OnItemSelected(ItemViewModel item)
     {
         _selectedInventory = await GetInventoryByIdUseCase.ExecuteAsync(item.ID);
 
@@ -102,7 +102,7 @@
             _purchaseViewModel.QuantityToPurchase,
             "Mike"); // This name is just temporarily hard coded for now.
 
-        // Create a new PurchaseViewModel. This causes the UI to be cleared since this variable now has all empty fields.
+        // Create a new PurchaseInventoryViewModel. This causes the UI to be cleared since this variable now has all empty fields.
         _purchaseViewModel = new();
         
         _selectedInventory = null;

@@ -40,6 +40,8 @@ namespace IMS.Plugins.InMemory
 				DoneBy = producedBy,
 				UnitPrice = price
 			});
+
+			return Task.CompletedTask;
 		}
 	}
 }

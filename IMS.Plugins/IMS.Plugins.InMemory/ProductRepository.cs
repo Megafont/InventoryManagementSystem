@@ -6,13 +6,16 @@ namespace IMS.Plugins.InMemory
 {
 	public class ProductRepository : IProductRepository
 	{
+		private readonly IInventoryRepository _inventoryRepository;
 		private List<Product> _products;
 
-		public ProductRepository()
+		public ProductRepository(IInventoryRepository inventoryRepository)
 		{
+			_inventoryRepository = inventoryRepository;
+
 			_products = new List<Product>()
 			{
-				new Product { ProductID = 1, ProductName = "Bike", Quantity = 10, Price = 100 },
+				new Product { ProductID = 1, ProductName = "Bike", Quantity = 10, Price = 150 },
 				new Product { ProductID = 2, ProductName = "Car", Quantity = 10, Price = 25000 },
 			};
 		}
@@ -85,10 +88,18 @@ namespace IMS.Plugins.InMemory
 
 						if (productInventory.Inventory != null)
 						{
-							productInventoryCopy.Inventory.InventoryID = productInventory.Inventory.InventoryID;
-							productInventoryCopy.Inventory.InventoryName = productInventory.Inventory.InventoryName;
-							productInventoryCopy.Inventory.Price = productInventory.Inventory.Price;
-							productInventoryCopy.Inventory.Quantity = productInventory.Inventory.Quantity;
+							// Get the inventory data straight from the InventoryRepository so we have the most up-to-date data.
+							// This fixes a bug when using the in-memory repositories where you can produce more product than you have inventory for.
+							Inventory currentInv =
+								await _inventoryRepository.GetInventoryByIdAsync(productInventory.Inventory.InventoryID);
+
+							if (currentInv != null)
+							{
+								productInventoryCopy.Inventory.InventoryID = currentInv.InventoryID;
+								productInventoryCopy.Inventory.InventoryName = currentInv.InventoryName;
+								productInventoryCopy.Inventory.Price = currentInv.Price;
+								productInventoryCopy.Inventory.Quantity = currentInv.Quantity;
+							}
 						}
 						copy.ProductInventories.Add(productInventoryCopy);
 					}
