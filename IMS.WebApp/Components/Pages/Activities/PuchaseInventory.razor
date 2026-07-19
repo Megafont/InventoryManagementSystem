@@ -6,6 +6,8 @@
 <!--This is required since we are passing a function defined in this component into the AutoCompleteComponent.-->
 @rendermode InteractiveServer
 
+@inject IJSRuntime JSRuntime
+
 @inject IGetInventoriesByNameUseCase GetInventoriesByNameUseCase
 @inject IGetInventoryByIdUseCase GetInventoryByIdUseCase
 @inject IPurchaseInventoryUseCase PurchaseInventoryUseCase
@@ -13,7 +15,7 @@
 <h3>Puchase Inventory</h3>
 <br/>
 
-<EditForm Model="_purchaseViewModel" OnValidSubmit="Purchase">
+<EditForm id="purchase-form" Model="_purchaseViewModel" OnValidSubmit="Purchase">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
@@ -71,6 +73,36 @@
 
     private Inventory? _selectedInventory = null;
 
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+
+        if (firstRender)
+        {
+            // Call the preventFormSubmission() function in our javascript file (JS_Interop.js in the wwwroot folder).
+            // This script prevents the Enter key from submitting the form like it does by default.
+            // The first parameter here is the name of the Javascript function to call, and the second is the ID of
+            // the form we want to ignore the Enter key rather than submitting.
+            // NOTE: For this to work, our javascript file needs to be included in app.razor as well.
+            JSRuntime.InvokeVoidAsync("preventFormSubmission", "purchase-form");
+
+            // .NET 10 also added a couple new functions as you can see below.
+            // NOTE that this function has to be changed to be an async function in order to use await here.
+            //string url = await JSRuntime.GetValueAsync<string>("document.location.href");
+            //JSRuntime.SetValueAsync("document.title", $"Purchase Inventory ({url})");
+            // These two function allow you to get and set values of properties in the DOM (document object model)
+            // in the browser, which is its internal representation of the page.
+
+            // .NET 10 also added a function to create a javascript object. The first parameter is the name of the javascript
+            // class we want to create an instance of. This Car class is also defined in JS_Interop.js.
+            // The rest of the parameters are the values expected by the car class' constructor (make, model, and year).
+            //var myCar = await JSRuntime.InvokeConstructorAsync("Car", "Chevy", "Camaro", 2025);
+            // The following line calls the car class' getDescription(function);
+            //string description = await myCar.InvokeAsync<string>("getDescription");
+            // And here we use GetValueAsync() to get the value of one of Car's properties:
+            //string make = await myCar.GetValueAsync<string>("make");
+        }
+    }
 
     private List<ItemViewModel>? SearchInventory(string searchFilter)
     {
