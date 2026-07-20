@@ -1,0 +1,145 @@
+﻿@using IMS.UseCases.Inventories
+@using IMS.UseCases.Products
+
+@using static IMS.WebApp.Components.Controls.Common.AutoCompleteComponent;
+
+@page "/sellproduct"
+
+@rendermode InteractiveServer
+
+@inject IJSRuntime JSRuntime
+
+@inject IGetProductsByNameUseCase GetProductsByNameUseCase
+@inject IGetProductByIdUseCase GetProductByIdUseCase
+@inject ISellProductUseCase SellProductUseCase
+
+<h3>Sell Product</h3>
+<br />
+
+<EditForm id="sell-form" Model="_sellViewModel" OnValidSubmit="Sell">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="po">Sales Order #</label>
+        <InputText id="po"
+                   class="form-control"
+                   @bind-Value="_sellViewModel.SalesOrderNumber" />
+    </div>
+
+    <br />
+
+    <div class="card">
+        <div class="card=body">
+            <div class="form-group">
+                <AutoCompleteComponent Label="Product to Sell"
+                                       SearchFunction="SearchProduct"
+                                       OnItemSelected="OnItemSelected" />
+            </div>
+        </div>
+    </div>
+
+    <br />
+
+    <div class="form-group">
+        <label for="qty">Quantity</label>
+        <InputNumber id="qty"
+                     class="form-control"
+                     @bind-Value="_sellViewModel.QuantityToSell" />
+    </div>
+    
+    <br />
+
+    <div class="form-group">
+        <label for="price">Unit Price</label>
+        <InputNumber id="price"
+                     class="form-control"
+                     @bind-Value="_sellViewModel.UnitPrice" />
+    </div>
+
+    <br />
+
+    <button type="submit"
+            class="btn btn-primary">
+        Sell
+    </button>
+
+</EditForm>
+
+@code
+{
+    private SellProductViewModel _sellViewModel = new();
+    private Product? _selectedProduct;
+
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+
+        if (firstRender)
+        {
+            // Call the preventFormSubmission() function in our javascript file (JS_Interop.js in the wwwroot folder).
+            // This script prevents the Enter key from submitting the form like it does by default.
+            // The first parameter here is the name of the Javascript function to call, and the second is the ID of
+            // the form we want to ignore the Enter key rather than submitting.
+            // NOTE: For this to work, our javascript file needs to be included in app.razor as well.
+            JSRuntime.InvokeVoidAsync("preventFormSubmission", "sell-form");
+
+            // .NET 10 also added a couple new functions as you can see below.
+            // NOTE that this function has to be changed to be an async function in order to use await here.
+            //string url = await JSRuntime.GetValueAsync<string>("document.location.href");
+            //JSRuntime.SetValueAsync("document.title", $"Purchase Inventory ({url})");
+            // These two function allow you to get and set values of properties in the DOM (document object model)
+            // in the browser, which is its internal representation of the page.
+
+            // .NET 10 also added a function to create a javascript object. The first parameter is the name of the javascript
+            // class we want to create an instance of. This Car class is also defined in JS_Interop.js.
+            // The rest of the parameters are the values expected by the car class' constructor (make, model, and year).
+            //var myCar = await JSRuntime.InvokeConstructorAsync("Car", "Chevy", "Camaro", 2025);
+            // The following line calls the car class' getDescription(function);
+            //string description = await myCar.InvokeAsync<string>("getDescription");
+            // And here we use GetValueAsync() to get the value of one of Car's properties:
+            //string make = await myCar.GetValueAsync<string>("make");
+        }
+    }
+
+    private List<ItemViewModel>? SearchProduct(string searchFilter)
+    {
+        // We are using ".GetAwaiter().GetResult()" here because ExecuteAsync() is an asynchronous method, but this SearchProduct method is synchronous.
+        // This is a common pattern in C# when you need to call an async method from an async context. However, be cautious with this approach, as it can
+        // lead to deadlocks in certain scenarios. In this case, it's safe because we are in a Blazor component and not in a UI thread context.
+        var list = GetProductsByNameUseCase.ExecuteAsync(searchFilter).GetAwaiter().GetResult();
+        if (list is null)
+            return null;
+
+        // This is called projection. We are projecting the list of found products from type IEnumerable<Product> to type List<ItemViewModel>.
+        // This is a common pattern in C# when you want to transform a collection of one type into a collection of another type.
+        return list.Select(x => new ItemViewModel() { ID = x.ProductID, Name = x.ProductName })?.ToList();
+    }
+
+    private async Task OnItemSelected(ItemViewModel item)
+    {
+        _selectedProduct = await GetProductByIdUseCase.ExecuteAsync(item.ID);
+
+        _sellViewModel.ProductID = item.ID;
+        _sellViewModel.Product = _selectedProduct;
+        _sellViewModel.UnitPrice = _selectedProduct.Price;
+    }
+
+    private async Task Sell()
+    {
+        await SellProductUseCase.ExecuteAsync(
+            _sellViewModel.SalesOrderNumber,
+            _selectedProduct,
+            _sellViewModel.QuantityToSell,
+            _sellViewModel.UnitPrice,
+            "Mike" // This name is just temporarily hard coded for now.
+
+        );
+
+        // Create a new SellProductViewModel. This causes the UI to be cleared since this variable now has all empty fields.
+        _sellViewModel = new();
+
+        _selectedProduct = null;
+    }
+}

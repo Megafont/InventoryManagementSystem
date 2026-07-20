@@ -5,7 +5,7 @@ using System.Text;
 
 namespace IMS.CoreBusiness
 {
-	public class ProductionTransaction
+	public class ProductTransaction
 	{
 		public int ProductionTransactionID { get; set; }
 		public string SalesOrderNumber { get; set; } = string.Empty;

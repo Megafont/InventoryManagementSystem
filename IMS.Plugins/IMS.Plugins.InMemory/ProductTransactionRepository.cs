@@ -9,7 +9,7 @@ namespace IMS.Plugins.InMemory
 {
 	public class ProductTransactionRepository : IProductTransactionRepository
 	{
-		private List<ProductionTransaction> _productionTransactions = new();
+		private List<ProductTransaction> _productTransactions = new();
 
 		private readonly IProductRepository _productRepository;
 		private readonly IInventoryTransactionRepository _inventoryTransactionRepository;
@@ -56,7 +56,7 @@ namespace IMS.Plugins.InMemory
 
 			// Add Production Transaction
 			// ---------------------------------------------------------------------------------------------------------------------------
-			_productionTransactions.Add(new ProductionTransaction
+			_productTransactions.Add(new ProductTransaction
 			{
 				ProductionNumber = productionNumber,
 				ProductID = product.ProductID,
@@ -67,7 +67,26 @@ namespace IMS.Plugins.InMemory
 				DoneBy = producedBy,
 			});
 
+		}
 
+		public Task SellProductAsync(string salesOrderNumber, Product product, int quantity, decimal unitPrice, string soldBy)
+		{
+			_productTransactions.Add(new ProductTransaction
+			{
+				ProductionNumber = salesOrderNumber,
+				ProductID = product.ProductID,
+				QuantityBefore = product.Quantity,
+				ActivityType = ProductTransactionTypes.SellProduct,
+				QuantityAfter = product.Quantity - quantity,
+				TransactionDate = DateTime.Now,
+				DoneBy = soldBy,
+				UnitPrice = unitPrice,
+			});
+
+			// We return this here since this function is actually synchronous, but it uses the name SellProductAsync() because
+			// that is enforced by the interface. This is why the ProduceProductAsync() method above does not end with the line
+			// below (return Task.CompletedTask;). That is handled for you in a true asynchronous method.
+			return Task.CompletedTask;
 		}
 	}
 }
