@@ -103,12 +103,9 @@
         }
     }
 
-    private List<ItemViewModel>? SearchProduct(string searchFilter)
+    private async Task<List<ItemViewModel>?> SearchProduct(string searchFilter)
     {
-        // We are using ".GetAwaiter().GetResult()" here because ExecuteAsync() is an asynchronous method, but this SearchProduct method is synchronous.
-        // This is a common pattern in C# when you need to call an async method from an async context. However, be cautious with this approach, as it can
-        // lead to deadlocks in certain scenarios. In this case, it's safe because we are in a Blazor component and not in a UI thread context.
-        var list = GetProductsByNameUseCase.ExecuteAsync(searchFilter).GetAwaiter().GetResult();
+        var list = await GetProductsByNameUseCase.ExecuteAsync(searchFilter);
         if (list is null)
             return null;
 

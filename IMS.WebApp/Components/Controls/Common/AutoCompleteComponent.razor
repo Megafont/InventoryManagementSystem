@@ -53,7 +53,7 @@
     public string Label { get; set; } = string.Empty;
 
     [Parameter]
-    public Func<string, List<ItemViewModel>?>? SearchFunction { get; set; }
+    public Func<string, Task<List<ItemViewModel>?>?>? SearchFunction { get; set; }
 
     [Parameter]
     public EventCallback<ItemViewModel> OnItemSelected { get; set; }
@@ -74,7 +74,9 @@
 
             if (!string.IsNullOrWhiteSpace(_userInput) && SearchFunction != null)
             {
-                _searchResults = SearchFunction(_userInput);
+                // We call this async function here, since a property setter cannot be async itself.
+                // This is also why we don't use the await keyword here.
+                ViewItemsAsync();
             }
         }
     }
@@ -85,6 +87,16 @@
     private ItemViewModel? _currentItem = null;
     private int _currentItemIndex = -1;
 
+    private async Task ViewItemsAsync()
+    {
+        if (SearchFunction != null)
+        {
+            _searchResults = await SearchFunction(_userInput);
+
+            // This is a built-in function that forces this Razor component to rerender itself.
+            StateHasChanged();
+        }
+    }
 
     private void HandleSelectItem(ItemViewModel? item)
     {
