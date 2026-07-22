@@ -23,7 +23,7 @@ namespace IMS.CoreBusiness
 		public int QuantityAfter { get; set; }
 
 		[Required]
-		public decimal UnitPrice { get; set; }
+		public decimal? UnitPrice { get; set; }
 
 		[Required]
 		public DateTime TransactionDate { get; set; }

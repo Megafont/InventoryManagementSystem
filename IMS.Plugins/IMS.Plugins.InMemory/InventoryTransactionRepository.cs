@@ -34,7 +34,7 @@ namespace IMS.Plugins.InMemory
 			return Task.CompletedTask;
 		}
 
-		public Task ProduceAsync(string productionNumber, Inventory inventory, int quantityToConsume, string producedBy, decimal price)
+		public Task ProduceAsync(string productionNumber, Inventory inventory, int quantityToConsume, string producedBy, decimal? price)
 		{
 			_inventoryTransactions.Add(new InventoryTransaction
 			{

@@ -29,6 +29,13 @@ namespace IMS.Plugins.InMemory
 			// Decrease the Inventory Quantities
 			// ---------------------------------------------------------------------------------------------------------------------------
 
+			// IMPORANT:
+			//	   If you see that a produce product operation did not generate the inventory transactions for each affected inventory,
+			//     check that the product has its inventories specified. If not, then no inventories will be affected since
+			//     the product object has no inventory requirements set.
+			//
+			//     TODO: The best solution would probably be to make it so the Product class requires that at least one inventory is specified since it doesn't make sense to have a product that can be produced from nothing.
+
 			// We need to get the full Product object from the repo. this is because the one passed in came from the edit form
 			// on the ProduceProduct page, so it is not complete.
 			Product fullProduct = await _productRepository.GetProductByIdAsync(product.ProductID);
@@ -44,7 +51,7 @@ namespace IMS.Plugins.InMemory
 							productInventory.Inventory,
 							productInventory.InventoryQuantity * quantity,
 							producedBy,
-							-1);
+							null);
 
 						// Decrease the quantity of this inventory.
 						Inventory inventory = await _inventoryRepository.GetInventoryByIdAsync(productInventory.InventoryID);
@@ -87,6 +94,39 @@ namespace IMS.Plugins.InMemory
 			// that is enforced by the interface. This is why the ProduceProductAsync() method above does not end with the line
 			// below (return Task.CompletedTask;). That is handled for you in a true asynchronous method.
 			return Task.CompletedTask;
+		}
+
+		public async Task<IEnumerable<ProductTransaction>> GetProductTransactionsAsync(string ProductName, DateTime? dateFrom, DateTime? dateTo,
+			ProductTransactionTypes? transactionType)
+		{
+			// You wouldn't normally grab all the transactions like this, but this is an in-memory repository, so it's ok in this case.
+			List<Product> products = (await _productRepository.GetProductsByNameAsync(string.Empty)).ToList();
+
+			// Use linq to filter the Product transactions based on the passed in filtering options.
+			var results = from productTransaction in _productTransactions
+				join Product in products on productTransaction.ProductID equals Product.ProductID
+				where
+					(string.IsNullOrWhiteSpace(ProductName) || Product.ProductName.ToLower().IndexOf(ProductName.ToLower()) >= 0) &&
+					(!dateFrom.HasValue || productTransaction.TransactionDate >= dateFrom.Value.Date) &&
+					(!dateTo.HasValue || productTransaction.TransactionDate <= dateTo.Value.Date) &&
+					(!transactionType.HasValue || productTransaction.ActivityType == transactionType)
+				select new ProductTransaction
+				{
+					Product = Product,
+					ProductionTransactionID = productTransaction.ProductionTransactionID,
+					SalesOrderNumber = productTransaction.SalesOrderNumber,
+					ProductionNumber = productTransaction.ProductionNumber,
+					ProductID = productTransaction.ProductID,
+					QuantityBefore = productTransaction.QuantityBefore,
+					ActivityType = productTransaction.ActivityType,
+					QuantityAfter = productTransaction.QuantityAfter,
+					TransactionDate = productTransaction.TransactionDate,
+					DoneBy = productTransaction.DoneBy,
+					UnitPrice = productTransaction.UnitPrice
+				};
+
+			// Return the search results.
+			return results;
 		}
 	}
 }
