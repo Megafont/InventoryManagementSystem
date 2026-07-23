@@ -58,3 +58,33 @@ h1:focus {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+@media print
+{
+    @page 
+    {
+        /* This makes the page default to landscape orientation for printing. 
+           NOTE: This locks the print preview dialog to landscape orientation. The option no longer even appears.
+                 This can be changed by changing the "@media print" header above to
+                 "@media print and (orientation: landscape)"
+        */
+        size: landscape;
+    }
+
+    body *
+    {
+        visibility: hidden
+    }
+
+    #printarea, #printarea *
+    {
+        visibility: visible
+    }
+
+    #printarea 
+    {
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+}
