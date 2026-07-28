@@ -1,3 +1,4 @@
+using IMS.Plugins.EFCoreSqlServer;
 using IMS.Plugins.InMemory;
 using IMS.UseCases.Activities;
 using IMS.UseCases.Activities.Interfaces;
@@ -9,6 +10,7 @@ using IMS.UseCases.Products.Interfaces;
 using IMS.UseCases.Reports;
 using IMS.UseCases.Reports.Interfaces;
 using IMS.WebApp.Components;
+using Microsoft.EntityFrameworkCore;
 
 // NOTE:
 // This project was built starting with this course as the base:
@@ -17,12 +19,23 @@ using IMS.WebApp.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Since we are using blazor pages (and especially since we're using server interactivity on some pages in this project),
+// we cannot or at least should not use the normal builder.AddDbContext() here. The course says due to this, it is not
+// clear what a transient lifetime would mean here so Blazor doesn't know when to dispose an instance of the DbContext.
+// So we need to use builder.Services.AddDbContextFactory() instead.
+// We are doing this to ensure the DbContext always has short-lived instances to avoid thread issues.
+builder.Services.AddDbContextFactory<IMS_Db_Context>(options =>
+{
+	options.UseSqlServer(builder.Configuration.GetConnectionString("InventoryManagement"));
+
+});
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
 	.AddInteractiveServerComponents(); // Enables interactive SSR (server side rendering), which were using on the products page. On the other hand, the inventories page is using static SSR (non-interactive SSR). There is another function like this one below on the app.MapRazorComponents() call.
 
 
-builder.Services.AddSingleton<IInventoryRepository, InventoryRepository>();
+builder.Services.AddSingleton<IInventoryRepository, InventoryEFCoreRepository>();
 builder.Services.AddSingleton<IProductRepository, ProductRepository>();
 builder.Services.AddSingleton<IInventoryTransactionRepository, InventoryTransactionRepository>();
 builder.Services.AddSingleton<IProductTransactionRepository, ProductTransactionRepository>();

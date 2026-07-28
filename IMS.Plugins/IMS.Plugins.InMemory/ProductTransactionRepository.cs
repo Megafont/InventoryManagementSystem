@@ -113,7 +113,7 @@ namespace IMS.Plugins.InMemory
 				select new ProductTransaction
 				{
 					Product = Product,
-					ProductionTransactionID = productTransaction.ProductionTransactionID,
+					ProductTransactionID = productTransaction.ProductTransactionID,
 					SalesOrderNumber = productTransaction.SalesOrderNumber,
 					ProductionNumber = productTransaction.ProductionNumber,
 					ProductID = productTransaction.ProductID,

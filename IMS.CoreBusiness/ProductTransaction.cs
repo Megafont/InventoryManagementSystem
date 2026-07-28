@@ -7,9 +7,10 @@ namespace IMS.CoreBusiness
 {
 	public class ProductTransaction
 	{
-		public int ProductionTransactionID { get; set; }
+		public int ProductTransactionID { get; set; }
 		public string SalesOrderNumber { get; set; } = string.Empty;
 		public string ProductionNumber { get; set; } = string.Empty;
+
 
 		[Required]
 		public int ProductID { get; set; }

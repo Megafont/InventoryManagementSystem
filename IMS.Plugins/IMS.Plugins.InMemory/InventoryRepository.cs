@@ -56,9 +56,9 @@ namespace IMS.Plugins.InMemory
 			return _inventories.Where(x => x.InventoryName.Contains(name, StringComparison.OrdinalIgnoreCase));
 		}
 
-		public async Task<Inventory?> GetInventoryByIdAsync(int inventoryId)
+		public async Task<Inventory?> GetInventoryByIdAsync(int inventoryID)
 		{
-			var inventory = _inventories.First(x => x.InventoryID == inventoryId);
+			var inventory = _inventories.First(x => x.InventoryID == inventoryID);
 
 			// Make a copy of the inventory object before returning it to stop outside code being able to modify the inventory object in the repository directly. This won't be necessary once we're using a real database.
 			var copy = new Inventory

@@ -15,7 +15,17 @@ namespace IMS.Plugins.InMemory
 
 			_products = new List<Product>()
 			{
-				new Product { ProductID = 1, ProductName = "Bike", Quantity = 10, Price = 150 },
+				new Product
+				{
+					ProductID = 1, ProductName = "Bike", Quantity = 10, Price = 150,
+					ProductInventories =
+					{
+						new ProductInventory { ProductID = 1, InventoryID = 1, InventoryQuantity = 1 }, // bike seat
+						new ProductInventory { ProductID = 1, InventoryID = 2, InventoryQuantity = 1 }, // bike body
+						new ProductInventory { ProductID = 1, InventoryID = 3, InventoryQuantity = 2 }, // bike wheels
+						new ProductInventory { ProductID = 1, InventoryID = 4, InventoryQuantity = 2 }  // bike pedals
+					}
+				},
 				new Product { ProductID = 2, ProductName = "Car", Quantity = 10, Price = 25000 },
 			};
 		}
@@ -57,9 +67,9 @@ namespace IMS.Plugins.InMemory
 			return _products.Where(x => x.ProductName.Contains(name, StringComparison.OrdinalIgnoreCase));
 		}
 
-		public async Task<Product?> GetProductByIdAsync(int productId)
+		public async Task<Product?> GetProductByIdAsync(int productID)
 		{
-			Product product = _products.FirstOrDefault(x => x.ProductID == productId);
+			Product product = _products.FirstOrDefault(x => x.ProductID == productID);
 
 			// Make a copy of the product object before returning it to stop outside code being able to modify the product object in the repository directly. This won't be necessary once we're using a real database.
 			Product? copy = null;
