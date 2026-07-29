@@ -76,7 +76,7 @@ IMPORTANT: The EditForm component must be given a name via the FormName attribut
     public int InventoryID { get; set; }
 
     [SupplyParameterFromForm]
-    private Inventory _Inventory { get; set; }
+    private InventoryViewModel _Inventory { get; set; }
 
 
     protected override async Task OnParametersSetAsync()
@@ -85,7 +85,19 @@ IMPORTANT: The EditForm component must be given a name via the FormName attribut
         // This is important because this method will be called multiple times during the lifecycle of the component, and we don't want to make unnecessary calls to the use case.
         // More importantly, if we just use = here instead of ??=, then the _Inventory variable will be reset when the user clicks the Update button.
         // This is because the HTTP post request that generates goes to this same page, which triggers the OnParametersSetAsync method again since this page takes a routing parameter.
-        _Inventory ??= await GetInventoryByIdUseCase.ExecuteAsync(InventoryID);
+        if (_Inventory is null)
+        {
+            Inventory inv = await GetInventoryByIdUseCase.ExecuteAsync(InventoryID);
+
+            // This conversion would normally be done using AutoMapper.
+            _Inventory = new InventoryViewModel()
+            {
+                InventoryID = inv.InventoryID,
+                InventoryName = inv.InventoryName,
+                Price = inv.Price,
+                Quantity = inv.Quantity
+            };
+        }
 
         if (_Inventory is null)
         {
@@ -96,8 +108,20 @@ IMPORTANT: The EditForm component must be given a name via the FormName attribut
 
     private async Task Update()
     {
-        await EditInventoryUseCase.ExecuteAsync(_Inventory);
+        if (_Inventory != null)
+        {
+            // This conversion would normally be done using AutoMapper.
+            Inventory inventory = new()
+            {
+                InventoryID = _Inventory.InventoryID,
+                InventoryName = _Inventory.InventoryName,
+                Price = _Inventory.Price,
+                Quantity = _Inventory.Quantity
+            };
 
-        NavigationManager.NavigateTo("/inventories");
+            await EditInventoryUseCase.ExecuteAsync(inventory);
+
+            NavigationManager.NavigateTo("/inventories");
+        }
     }
 }

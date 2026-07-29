@@ -65,11 +65,21 @@
 @code 
 {
     [SupplyParameterFromForm]
-    private Inventory _Inventory { get; set; } = new Inventory();
+    private InventoryViewModel _Inventory { get; set; } = new();
 
     private async Task Save()
     {
-        await AddInventoryUseCase.ExecuteAsync(_Inventory);
+        // This conversion would normally be done using AutoMapper.
+        Inventory inventory = new()
+            {
+                InventoryID = _Inventory.InventoryID,
+                InventoryName = _Inventory.InventoryName,
+                Price = _Inventory.Price,
+                Quantity = _Inventory.Quantity
+            };
+
+
+        await AddInventoryUseCase.ExecuteAsync(inventory);
 
         NavigationManager.NavigateTo("/inventories");
     }

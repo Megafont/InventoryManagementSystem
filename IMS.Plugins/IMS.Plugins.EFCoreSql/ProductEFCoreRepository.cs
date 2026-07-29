@@ -54,7 +54,11 @@ namespace IMS.Plugins.EFCoreSqlServer
 			// This is the same as a using block, except that it means this variable will be disposed when it goes out of scope (aka when this function ends).
 			using IMS_Db_Context db = _contextFactory.CreateDbContext();
 
-			Product product = await db.Products.FindAsync(productID);
+			// This is telling Entity Framework Core to include the ProductInventories this product links to, and each inventory that each ProductInventory record links to.
+			Product product = await db.Products
+				.Include(x => x.ProductInventories)!
+				.ThenInclude(x => x.Inventory)
+				.FirstOrDefaultAsync(x => x.ProductID == productID);
 
 			return product;
 		}
@@ -64,7 +68,11 @@ namespace IMS.Plugins.EFCoreSqlServer
 			// This is the same as a using block, except that it means this variable will be disposed when it goes out of scope (aka when this function ends).
 			using IMS_Db_Context db = _contextFactory.CreateDbContext();
 
-			Product record = await db.Products.FindAsync(product.ProductID);
+			// This is telling Entity Framework Core to include the ProductInventories this product links to.
+			Product record = await db.Products
+				.Include(x => x.ProductInventories)!
+				.FirstOrDefaultAsync(x => x.ProductID == product.ProductID);
+
 			if (record != null)
 			{
 				record.ProductName = product.ProductName;

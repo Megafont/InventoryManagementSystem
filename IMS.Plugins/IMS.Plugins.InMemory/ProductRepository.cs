@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using IMS.CoreBusiness;
 using IMS.UseCases.PluginInterfaces;
 
@@ -91,25 +91,24 @@ namespace IMS.Plugins.InMemory
 						{
 							InventoryID = productInventory.InventoryID,
 							ProductID = productInventory.ProductID,
-							Product = product,
+							Product = copy,
 							Inventory = new Inventory(),
 							InventoryQuantity = productInventory.InventoryQuantity,
 						};
 
-						if (productInventory.Inventory != null)
-						{
-							// Get the inventory data straight from the InventoryRepository so we have the most up-to-date data.
-							// This fixes a bug when using the in-memory repositories where you can produce more product than you have inventory for.
-							Inventory currentInv =
-								await _inventoryRepository.GetInventoryByIdAsync(productInventory.Inventory.InventoryID);
+						// Get the inventory data straight from the InventoryRepository so we have the most up-to-date data.
+						// This fixes a bug when using the in-memory repositories where you can produce more product than you have inventory for.
+						// We use InventoryID rather than Inventory?.InventoryID because the Inventory navigation property
+						// is null in the seed data — only the foreign key ID is populated.
+						Inventory currentInv =
+							await _inventoryRepository.GetInventoryByIdAsync(productInventory.InventoryID);
 
-							if (currentInv != null)
-							{
-								productInventoryCopy.Inventory.InventoryID = currentInv.InventoryID;
-								productInventoryCopy.Inventory.InventoryName = currentInv.InventoryName;
-								productInventoryCopy.Inventory.Price = currentInv.Price;
-								productInventoryCopy.Inventory.Quantity = currentInv.Quantity;
-							}
+						if (currentInv != null)
+						{
+							productInventoryCopy.Inventory.InventoryID = currentInv.InventoryID;
+							productInventoryCopy.Inventory.InventoryName = currentInv.InventoryName;
+							productInventoryCopy.Inventory.Price = currentInv.Price;
+							productInventoryCopy.Inventory.Quantity = currentInv.Quantity;
 						}
 						copy.ProductInventories.Add(productInventoryCopy);
 					}
@@ -122,7 +121,7 @@ namespace IMS.Plugins.InMemory
 		public Task UpdateProductAsync(Product product)
 		{
 			// Make sure the updated product data does not have the same name as another product in the repository.
-			if (_products.Any(x => 
+			if (_products.Any(x =>
 				    x.ProductID != product.ProductID &&
 			        x.ProductName.Equals(product.ProductName, StringComparison.OrdinalIgnoreCase)))
 			{

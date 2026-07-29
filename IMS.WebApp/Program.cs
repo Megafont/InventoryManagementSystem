@@ -10,6 +10,7 @@ using IMS.UseCases.Products.Interfaces;
 using IMS.UseCases.Reports;
 using IMS.UseCases.Reports.Interfaces;
 using IMS.WebApp.Components;
+using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.EntityFrameworkCore;
 
 // NOTE:
@@ -35,10 +36,34 @@ builder.Services.AddRazorComponents()
 	.AddInteractiveServerComponents(); // Enables interactive SSR (server side rendering), which were using on the products page. On the other hand, the inventories page is using static SSR (non-interactive SSR). There is another function like this one below on the app.MapRazorComponents() call.
 
 
-builder.Services.AddSingleton<IInventoryRepository, InventoryEFCoreRepository>();
-builder.Services.AddSingleton<IProductRepository, ProductRepository>();
-builder.Services.AddSingleton<IInventoryTransactionRepository, InventoryTransactionRepository>();
-builder.Services.AddSingleton<IProductTransactionRepository, ProductTransactionRepository>();
+// If we are in the testing environment, then use the in-memory repositories.
+// NOTE: The environments are defined in launchSettings.json.
+//       In each profile there, the ASPNETCORE_ENVIRONMENT key sets the environment
+//       ASP.NET Core will use when the app is running under that profile.
+//		 Which profile runs depends on which one is selected in Visual Studio's run button.
+if (builder.Environment.IsEnvironment("Testing"))
+{
+	// This is needed, as otherwise the static assets in the www folder don't get loaded when running the
+	// app in the "Testing" environment.
+	StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configuration);
+
+	builder.Services.AddSingleton<IInventoryRepository, InventoryRepository>();
+	builder.Services.AddSingleton<IProductRepository, ProductRepository>();
+	builder.Services.AddSingleton<IInventoryTransactionRepository, InventoryTransactionRepository>();
+	builder.Services.AddSingleton<IProductTransactionRepository, ProductTransactionRepository>();
+}
+else // We are not in the testing environment, so use our Entity Framework Core SQL Server database-backed repositories.
+{
+	// Unlike the in-memory plugins above, these ones need to use transient lifetime.
+	// This is because they don't need to stay in memory for as long as the application is running.
+	// The in-memory plugins above do because they are also acting as the database itself,
+	// (in other words, each one is not just accessing the data but also storing it).
+	// These EFCore plugins don't have to store the data, since the database is doing that.
+	builder.Services.AddTransient<IInventoryRepository, InventoryEFCoreRepository>();
+	builder.Services.AddTransient<IProductRepository, ProductEFCoreRepository>();
+	builder.Services.AddTransient<IInventoryTransactionRepository, InventoryTransactionEFCoreRepository>();
+	builder.Services.AddTransient<IProductTransactionRepository, ProductTransactionEFCoreRepository>();
+}
 
 builder.Services.AddTransient<IGetInventoriesByNameUseCase, GetInventoriesByNameUseCase>();
 builder.Services.AddTransient<IAddInventoryUseCase, AddInventoryUseCase>();
