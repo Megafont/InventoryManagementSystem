@@ -1,11 +1,16 @@
 ﻿@page "/purchaseinventory"
 
 @using IMS.UseCases.Activities.Interfaces
+@using Microsoft.AspNetCore.Authorization
 @using static IMS.WebApp.Components.Controls.Common.AutoCompleteComponent
+
+<!--Makes this page require being logged in.-->
+@attribute [Authorize]
 
 <!--This is required since we are passing a function defined in this component into the AutoCompleteComponent.-->
 @rendermode InteractiveServer
 
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IJSRuntime JSRuntime
 
 @inject IGetInventoriesByNameUseCase GetInventoriesByNameUseCase
@@ -73,6 +78,13 @@
 
     private Inventory? _selectedInventory = null;
 
+    private AuthenticationState? _authenticationState;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+    }
+
     protected override void OnAfterRender(bool firstRender)
     {
         base.OnAfterRender(firstRender);
@@ -125,15 +137,22 @@
 
     private async Task Purchase()
     {
-        await PurchaseInventoryUseCase.ExecuteAsync(
-            _purchaseViewModel.PurchaseOrderNumber,
-            _selectedInventory,
-            _purchaseViewModel.QuantityToPurchase,
-            "Mike"); // This name is just temporarily hard coded for now.
+        string userName = string.Empty;
 
-        // Create a new PurchaseInventoryViewModel. This causes the UI to be cleared since this variable now has all empty fields.
-        _purchaseViewModel = new();
-        
-        _selectedInventory = null;
+        if (_authenticationState?.User?.Identity?.IsAuthenticated ?? false)
+        {
+            userName = _authenticationState.User.Identity.Name ?? string.Empty;
+
+            await PurchaseInventoryUseCase.ExecuteAsync(
+                _purchaseViewModel.PurchaseOrderNumber,
+                _selectedInventory,
+                _purchaseViewModel.QuantityToPurchase,
+                userName);
+
+            // Create a new PurchaseInventoryViewModel. This causes the UI to be cleared since this variable now has all empty fields.
+            _purchaseViewModel = new();
+
+            _selectedInventory = null;
+        }
     }
 }

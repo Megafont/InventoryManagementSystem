@@ -12,6 +12,10 @@ using IMS.UseCases.Reports.Interfaces;
 using IMS.WebApp.Components;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.EntityFrameworkCore;
+using IMS.WebApp.Components.Account;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Identity;
+using IMS.WebApp.Data;
 
 // NOTE:
 // This project was built starting with this course as the base:
@@ -19,6 +23,50 @@ using Microsoft.EntityFrameworkCore;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+// Add services to the container.
+builder.Services.AddRazorComponents()
+	.AddInteractiveServerComponents(); // Enables interactive SSR (server side rendering), which were using on the products page. On the other hand, the inventories page is using static SSR (non-interactive SSR). There is another function like this one below on the app.MapRazorComponents() call.
+
+
+// ADD MICROSOFT ASP.NET CORE IDENTITY SERVICES
+// ==============================================================================================================================================================================================
+
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddScoped<IdentityRedirectManager>();
+
+builder.Services.AddAuthentication(options =>
+	{
+		options.DefaultScheme = IdentityConstants.ApplicationScheme;
+		options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+	})
+	.AddIdentityCookies();
+
+builder.Services.AddAuthorization();
+
+var authConnectionString = builder.Configuration.GetConnectionString("IMS_Accounts") ??
+                       throw new InvalidOperationException("Connection string 'IMS_Accounts' not found.");
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+	options.UseSqlServer(authConnectionString));
+
+builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+builder.Services.AddIdentityCore<ApplicationUser>(options =>
+	{
+		options.SignIn.RequireConfirmedAccount = true;
+		options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
+	})
+	.AddEntityFrameworkStores<ApplicationDbContext>()
+	.AddSignInManager()
+	.AddDefaultTokenProviders();
+
+builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
+
+// ADD INVENTORY MANAGEMENT SYSTEM SERVICES
+// ==============================================================================================================================================================================================
 
 // Since we are using blazor pages (and especially since we're using server interactivity on some pages in this project),
 // we cannot or at least should not use the normal builder.AddDbContext() here. The course says due to this, it is not
@@ -30,11 +78,6 @@ builder.Services.AddDbContextFactory<IMS_Db_Context>(options =>
 	options.UseSqlServer(builder.Configuration.GetConnectionString("InventoryManagement"));
 
 });
-
-// Add services to the container.
-builder.Services.AddRazorComponents()
-	.AddInteractiveServerComponents(); // Enables interactive SSR (server side rendering), which were using on the products page. On the other hand, the inventories page is using static SSR (non-interactive SSR). There is another function like this one below on the app.MapRazorComponents() call.
-
 
 // If we are in the testing environment, then use the in-memory repositories.
 // NOTE: The environments are defined in launchSettings.json.
@@ -85,16 +128,24 @@ builder.Services.AddTransient<ISearchInventoryTransactionsUseCase, SearchInvento
 builder.Services.AddTransient<ISearchProductTransactionsUseCase, SearchProductTransactionsUseCase>();
 
 
+// FINISH SETTING UP THIS APP
+// ==============================================================================================================================================================================================
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
+{
+	app.UseMigrationsEndPoint();
+}
+else
 {
 	app.UseExceptionHandler("/Error", createScopeForErrors: true);
 	// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
 	// NOTE: This forces it to use HTTPS (HSTS = HTTP Strict-Transport-Security)
 	app.UseHsts();
 }
+
 
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
@@ -104,5 +155,8 @@ app.UseAntiforgery();
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
 	.AddInteractiveServerRenderMode(); // Enables interactive SSR (server side rendering), which were using on the products page. On the other hand, the inventories page is using static SSR (non-interactive SSR). There is another function like this one above on the builder.Services.AddRazorComponents() call.
+
+// Add additional endpoints required by Identity /Account Razor components.
+app.MapAdditionalIdentityEndpoints();;
 
 app.Run();

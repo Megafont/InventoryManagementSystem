@@ -107,6 +107,8 @@
             _selectedItem = item;
 
             // Fill the input box with the full name of the selected item.
+            // NOTE: We are using the raw field (_userInput) here, not the UserInput property. If we use the property, it will trigger the input changed event again
+            //       and cause the drop-down list to reappear when it should not.
             _userInput = item?.Name ?? string.Empty;
 
             // Clear the search results variable so that the drop-down list is now empty, and thus disappears from the UI.
