@@ -2,7 +2,7 @@
 @using Microsoft.AspNetCore.Authorization
 
 <!--Makes this page require being logged in.-->
-@attribute [Authorize]
+@attribute [Authorize(Policy = "Inventory")]
 
 @rendermode InteractiveServer // Locks this component into the Interactive Server rendering mode.
 

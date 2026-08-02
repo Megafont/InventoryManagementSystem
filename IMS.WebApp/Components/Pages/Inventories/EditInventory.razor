@@ -2,13 +2,13 @@
 @using Microsoft.AspNetCore.Authorization
 
 <!--Makes this page require being logged in.-->
-@attribute [Authorize]
+@attribute [Authorize(Policy = "Inventory")]
 
 @inject NavigationManager NavigationManager
 @inject IGetInventoryByIdUseCase GetInventoryByIdUseCase
 @inject IEditInventoryUseCase EditInventoryUseCase
 
-<h3>EditInventory</h3>
+<h3>Edit Inventory</h3>
 <br/>
 
 @if (_Inventory is not null)

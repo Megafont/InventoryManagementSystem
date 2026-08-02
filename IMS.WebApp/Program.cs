@@ -13,13 +13,33 @@ using IMS.WebApp.Components;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.EntityFrameworkCore;
 using IMS.WebApp.Components.Account;
+using IMS.WebApp.Components.Pages.Activities;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using IMS.WebApp.Data;
+using Microsoft.AspNetCore.Authorization;
 
-// NOTE:
-// This project was built starting with this course as the base:
-// https://www.youtube.com/watch?v=yc6obH1DPus
+/*
+NOTES:
+==============================================================================================================================================================================================
+
+This project was built starting with this course as the base:
+https://www.youtube.com/watch?v=yc6obH1DPus
+
+All of the demo user accounts have the password "Password1#"
+If starting with a new database, they can be recreated via the register page.
+User the table below to create the demo users. Then make sure each account has the claim specified in the table below.
+
+USERNAME:						CLAIM:
+---------------------------------------------------------------------------------------------------------------------------------
+admin1@gmail.com				("Department", "Administration")
+useradmin1@gmail.com			("Department", "User Administration")
+inventory1@gmail.com			("Department", "Inventory Management")
+production1@gmail.com			("Department", "Production Management")
+purchase1@gmail.com				("Department", "Purchasing")
+sales1@gmail.com				("Department", "Sales")
+---------------------------------------------------------------------------------------------------------------------------------
+*/
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -43,7 +63,15 @@ builder.Services.AddAuthentication(options =>
 	})
 	.AddIdentityCookies();
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+	options.AddPolicy("Admin", policy => policy.RequireClaim("Department", "Administration"));
+	options.AddPolicy("UserAdmin", policy => policy.RequireClaim("Department", "User Administration"));
+	options.AddPolicy("Inventory", policy => policy.RequireClaim("Department", "Inventory Management"));
+	options.AddPolicy("Sales", policy => policy.RequireClaim("Department", "Sales"));
+	options.AddPolicy("Purchasing", policy => policy.RequireClaim("Department", "Purchasing"));
+	options.AddPolicy("Production", policy => policy.RequireClaim("Department", "Production Management"));
+});
 
 var authConnectionString = builder.Configuration.GetConnectionString("IMS_Accounts") ??
                        throw new InvalidOperationException("Connection string 'IMS_Accounts' not found.");
@@ -78,6 +106,9 @@ builder.Services.AddDbContextFactory<IMS_Db_Context>(options =>
 	options.UseSqlServer(builder.Configuration.GetConnectionString("InventoryManagement"));
 
 });
+
+// Add our admin override authorization handler, which allows an "Admin" user to access all pages.
+builder.Services.AddSingleton<IAuthorizationHandler, AdminOverrideHandler>();
 
 // If we are in the testing environment, then use the in-memory repositories.
 // NOTE: The environments are defined in launchSettings.json.
