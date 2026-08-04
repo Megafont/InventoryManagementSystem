@@ -1,8 +1,6 @@
-﻿@page "/account/manageusers"
+﻿@page "/Account/ManageUsers"
 
 @using IMS.WebApp.Data
-@using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Identity
 
 <!--You can put multiple instances of the Authorize attribute to require more than one policy on this page.-->
 @attribute [Authorize(Policy = "UserAdmin")]

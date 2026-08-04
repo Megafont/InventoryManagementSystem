@@ -1,0 +1,191 @@
+﻿
+@rendermode InteractiveServer
+
+@inject NavigationManager NavigationManager
+
+<!--This layout is the Navbar component from https://getbootstrap.com/docs/5.3/components/navbar/-->
+<!--This code was modified in the course, so it is not identical to the code from that link, though.-->
+
+<nav class="navbar navbar-expand-lg bg-dark navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Inventory Management</a>
+        
+        <!--This button appears at the top-right when the window is too narrow to fit the navbar normally. So it will turn into a vertical sidebar instead when this button is clicked.-->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" @onclick="ToggleMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="@_collapseOrNot navbar-collapse bg-dark" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item" @onclick="CollapseAllDropdownMenus">
+                    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                        <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                    </NavLink>
+                </li>
+                <li class="nav-item" @onclick="CollapseAllDropdownMenus">
+                    <NavLink class="nav-link" href="inventories">
+                        <span class="bi bi-inventories-nav-menu" aria-hidden="true"></span> Inventories
+                    </NavLink>
+                </li>
+                <li class="nav-item" @onclick="CollapseAllDropdownMenus">
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="products">
+                            <span class="bi bi-products-nav-menu" aria-hidden="true"></span> Products
+                        </NavLink>
+                    </div>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" @onclick="ToggleActivitiesDropdown">
+                        Activities
+                    </a>
+                    @if (!_collapseActivitiesDropdown)
+                    {
+                        <ul class="dropdown-menu show bg-dark-subtle">
+                            <li>
+                                <NavLink class="dropdown-item" href="purchaseinventory">
+                                    <span class="bi bi-purchase-inventories-nav-menu" aria-hidden="true"></span> Purchase Inventory
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink class="dropdown-item" href="produceproduct">
+                                    <span class="bi bi-produce-products-nav-menu" aria-hidden="true"></span> Produce Product
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink class="dropdown-item" href="sellproduct">
+                                    <span class="bi bi-sell-products-nav-menu" aria-hidden="true"></span> Sell Product
+                                </NavLink>
+                            </li>
+                        </ul>
+                    }
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" @onclick="ToggleReportsDropdown">
+                        Reports
+                    </a>
+                    @if (!_collapseReportsDropdown)
+                    {
+                        <ul class="dropdown-menu show bg-dark-subtle">
+                            <li>
+                                <NavLink class="dropdown-item" href="inventoryreport">
+                                    <span class="bi bi-inventories-report-nav-menu" aria-hidden="true"></span> Inventory Report
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink class="dropdown-item" href="productreport">
+                                    <span class="bi bi-products-report-nav-menu" aria-hidden="true"></span> Product Report
+                                </NavLink>
+                            </li>
+                        </ul>
+                    }
+
+                </li>
+
+            </ul>
+
+            <AuthorizeView>
+                <Authorized>
+                    <div class="navbar-nav px-3">
+                        <NavLink class="nav-link" href="Account/Manage">
+                            <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
+                        </NavLink>
+                    </div>
+                    <div class="navbar-nav px-3">
+                        <form action="Account/Logout" method="post">
+                            <AntiforgeryToken />
+                            <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                            <button type="submit" class="nav-link">
+                                <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
+                            </button>
+                        </form>
+                    </div>
+                </Authorized>
+                <NotAuthorized>
+                    <div class="navbar-nav px-3">
+                        <NavLink class="nav-link" href="Account/Register">
+                            <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register
+                        </NavLink>
+                    </div>
+                    <div class="navbar-nav px-3">
+                        <NavLink class="nav-link" href="Account/Login">
+                            <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
+                        </NavLink>
+                    </div>
+                </NotAuthorized>
+            </AuthorizeView>
+
+        </div>
+    </div>
+</nav>
+             
+@code
+{
+    private string? currentUrl;
+
+    private bool _collapseNavMenu = true; // Determines whether the nav bar is collapsed into a horizontal bar or expanded into a vertical bar.
+    private string _collapseOrNot = "collapse";
+
+    private bool _collapseActivitiesDropdown = true;
+    private bool _collapseReportsDropdown = true;
+
+
+    protected override void OnInitialized()
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    private void ToggleMenu()
+    {
+        _collapseNavMenu = !_collapseNavMenu;
+
+        // This variable is inserted in the HTML code at the top of this file. Since this component is using server interactive rendering, it will update.
+        // So when the value of this variable changes, it determines whether the navbar will have the collapse item in its class attribute or not.
+        _collapseOrNot = _collapseNavMenu ? "collapse" : string.Empty;
+    }
+
+    /// <summary>
+    /// This method is called when the user clicks on the Activities dropdown menu in the navbar.
+    /// NOTE: This method also gets called when the user clicks on one of the dropdown items in this menu as well.
+    ///       This is because the click event bubbles up to the parent page element, which does have an onclick handler.
+    /// </summary>
+    private void ToggleActivitiesDropdown()
+    {
+        CollapseAllDropdownMenus();
+        _collapseActivitiesDropdown = !_collapseActivitiesDropdown;
+    }
+
+    /// <summary>
+    /// This method is called when the user clicks on the Reports dropdown menu in the navbar.
+    /// NOTE: This method also gets called when the user clicks on one of the dropdown items in this menu as well.
+    ///       This is because the click event bubbles up to the parent page element, which does have an onclick handler.
+    /// </summary>
+    private void ToggleReportsDropdown()
+    {
+        CollapseAllDropdownMenus();
+        _collapseReportsDropdown = !_collapseReportsDropdown;
+    }
+
+    private void CollapseAllDropdownMenus()
+    {
+        _collapseActivitiesDropdown = true;
+        _collapseReportsDropdown = true;
+    }
+
+
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+
+}

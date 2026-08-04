@@ -1,5 +1,4 @@
 ﻿@page "/editinventory/{inventoryID:int}"
-@using Microsoft.AspNetCore.Authorization
 
 <!--Makes this page require being logged in.-->
 @attribute [Authorize(Policy = "Inventory")]
@@ -74,7 +73,7 @@ IMPORTANT: The EditForm component must be given a name via the FormName attribut
 
 @code 
 {
-    // NOTE: The name of this property MUST be the same as the name of the routing parameter in the @page directive above. Otherwise (inventoryID).
+    // NOTE: The name of this property MUST be the same as the name of the routing parameter in the @page directive above.
     //       This is NOT case-sensitive though, so InventoryID is also fine here.
     [Parameter]
     public int InventoryID { get; set; }

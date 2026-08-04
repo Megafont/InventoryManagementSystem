@@ -55,19 +55,26 @@ namespace IMS.Plugins.EFCoreSqlServer
 				new Inventory { InventoryID = 1, InventoryName = "Bike Seat", Quantity = 10, Price = 2 },
 				new Inventory { InventoryID = 2, InventoryName = "Bike Body", Quantity = 10, Price = 15 },
 				new Inventory { InventoryID = 3, InventoryName = "Bike Wheels", Quantity = 20, Price = 8 },
-				new Inventory { InventoryID = 4, InventoryName = "Bike Pedals", Quantity = 20, Price = 1 }
+				new Inventory { InventoryID = 4, InventoryName = "Bike Pedals", Quantity = 20, Price = 1 },
+				new Inventory { InventoryID = 5, InventoryName = "Gas Engine", Quantity = 50, Price = 1500 },
+				new Inventory { InventoryID = 6, InventoryName = "Electric Engine", Quantity = 30, Price = 4000 }
 			);
 
 			modelBuilder.Entity<Product>().HasData(
 				new Product { ProductID = 1, ProductName = "Bike", Quantity = 10, Price = 150 },
-				new Product { ProductID = 2, ProductName = "Car", Quantity = 5, Price = 25000 }
+				new Product { ProductID = 2, ProductName = "Car", Quantity = 5, Price = 25000 },
+				new Product { ProductID = 3, ProductName = "Electric Car", Quantity = 5, Price = 40000 }
 			);
 
 			modelBuilder.Entity<ProductInventory>().HasData(
 				new ProductInventory { ProductID = 1, InventoryID = 1, InventoryQuantity = 1 }, // bike seat
 				new ProductInventory { ProductID = 1, InventoryID = 2, InventoryQuantity = 1 }, // bike body
 				new ProductInventory { ProductID = 1, InventoryID = 3, InventoryQuantity = 2 }, // bike wheels
-				new ProductInventory { ProductID = 1, InventoryID = 4, InventoryQuantity = 2 }  // bike pedals
+				new ProductInventory { ProductID = 1, InventoryID = 4, InventoryQuantity = 2 },  // bike pedals
+
+				new ProductInventory { ProductID = 2, InventoryID = 5, InventoryQuantity = 1 },  // gas engine
+
+				new ProductInventory { ProductID = 3, InventoryID = 6, InventoryQuantity = 1 }   // electric engine
 			);
 		}
 	}

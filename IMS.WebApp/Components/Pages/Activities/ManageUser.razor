@@ -1,0 +1,176 @@
+﻿@page "/Account/ManageUser/{userid}"
+
+@using System.Security.Claims
+@using IMS.WebApp.Data
+
+@attribute [Authorize(Policy = "UserAdmin")]
+
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager NavigationManager
+
+<h3>Manage User</h3>
+<br/>
+
+
+@if (_viewModel != null)
+{
+    <EditForm FormName="formManageUser" Model="_viewModel" OnValidSubmit="SaveUser">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        
+        <div class="form-group">
+            <label for="username">UserName</label>
+            <input id="username"
+                   type="text"
+                   class="form-control"
+                   readonly
+                   value="@_viewModel.UserName" />
+        </div>
+
+        <br />
+
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input 
+                id="email"
+                type="text"
+                class="form-control"
+                readonly
+                value="@_viewModel.Email"/>
+        </div>
+        
+        <br />
+        
+        <div class="form-group">
+            <label for="department">Department</label>
+            <InputSelect id="department" @bind-Value="_viewModel.Department" class="form-control">
+                <option></option>
+                
+                <!--These if/else statements select the department this user is part of in the dropdown list.-->
+                @if (_viewModel.Department == "Administration")
+                {
+                    <option value="Administration" selected>Administration</option>
+                }
+                else
+                {
+                    <option value="Administration">Administration</option>
+                }
+                
+
+                @if (_viewModel.Department == "User Administration")
+                {
+                    <option value="User Administration" selected>User Administration</option>
+                }
+                else
+                {
+                    <option value="User Administration">User Administration</option>
+                }
+                
+
+                @if (_viewModel.Department == "Inventory Management")
+                {
+                    <option value="Inventory Management" selected>Inventory Management</option>
+                }
+                else
+                {
+                    <option value="Inventory Management">Inventory Management</option>
+                }
+
+
+                @if (_viewModel.Department == "Sales")
+                {
+                    <option value="Sales" selected>Sales</option>
+                }
+                else
+                {
+                    <option value="Sales">Sales</option>
+                }
+                
+
+                @if (_viewModel.Department == "Purchasing")
+                {
+                    <option value="Purchasing" selected>Purchasing</option>
+                }
+                else
+                {
+                    <option value="Purchasing">Purchasing</option>
+                }
+                
+                
+                @if (_viewModel.Department == "Production Management")
+                {
+                    <option value="Production Management" selected>Production Management</option>
+                }
+                else
+                {
+                    <option value="Production Management">Production Management</option>
+                }
+
+            </InputSelect>
+            
+        </div>
+        
+        <br />
+        
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a href="/account/manageusers" class="btn btn-primary">Cancel</a>
+
+    </EditForm>
+}
+
+
+@code 
+{
+    // NOTE: The name of this property MUST be the same as the name of the routing parameter in the @page directive above.
+    //       This is NOT case-sensitive though, so UserID is also fine here.
+    [Parameter] public string? UserId { get; set; }
+
+    private const string DEPARTMENT_CLAIM_TYPE_NAME = "Department";
+
+    private ApplicationUser _user;
+    private Claim? _departmentClaim;
+    private bool _userHadDepartment = true;
+
+    [SupplyParameterFromForm] private ManageUserViewModel? _viewModel { get; set; }
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Only initialize _user if it is null.
+        _user ??= UserManager.Users.First(x => x.Id == UserId);
+
+        var claims = await UserManager.GetClaimsAsync(_user);
+
+        _departmentClaim = claims.FirstOrDefault(x => x.Type == DEPARTMENT_CLAIM_TYPE_NAME);
+        if (_departmentClaim is null)
+        {
+            _userHadDepartment = false;
+            _departmentClaim = new Claim(DEPARTMENT_CLAIM_TYPE_NAME, string.Empty);
+        }
+
+        _viewModel = new ManageUserViewModel
+        {
+            UserName = _user.UserName,
+            Email = _user.Email,
+            Department = _departmentClaim.Value
+        };
+    }
+
+    private async Task SaveUser()
+    {
+        if (_user == null || _departmentClaim == null)
+            return;
+
+
+        if (_userHadDepartment)
+        {
+            await UserManager.ReplaceClaimAsync(_user, _departmentClaim, new Claim(DEPARTMENT_CLAIM_TYPE_NAME, _viewModel?.Department ?? string.Empty));
+        }
+        else
+        {
+            await UserManager.AddClaimAsync(_user, new Claim(DEPARTMENT_CLAIM_TYPE_NAME, _viewModel?.Department ?? string.Empty));
+        }
+
+        NavigationManager.NavigateTo("/account/manageusers");
+    }
+}

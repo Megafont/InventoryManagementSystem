@@ -1,7 +1,5 @@
 ﻿@page "/purchaseinventory"
 
-@using IMS.UseCases.Activities.Interfaces
-@using Microsoft.AspNetCore.Authorization
 @using static IMS.WebApp.Components.Controls.Common.AutoCompleteComponent
 
 <!--Makes this page require being logged in.-->
@@ -18,7 +16,7 @@
 @inject IGetInventoryByIdUseCase GetInventoryByIdUseCase
 @inject IPurchaseInventoryUseCase PurchaseInventoryUseCase
 
-<h3>Puchase Inventory</h3>
+<h3>Purchase Inventory</h3>
 <br/>
 
 <EditForm id="purchase-form" Model="_purchaseViewModel" OnValidSubmit="Purchase">

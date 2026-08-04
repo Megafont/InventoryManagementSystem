@@ -26,7 +26,24 @@ namespace IMS.Plugins.InMemory
 						new ProductInventory { ProductID = 1, InventoryID = 4, InventoryQuantity = 2 }  // bike pedals
 					}
 				},
-				new Product { ProductID = 2, ProductName = "Car", Quantity = 10, Price = 25000 },
+
+				new Product
+				{
+					ProductID = 2, ProductName = "Car", Quantity = 5, Price = 25000, 
+					ProductInventories =
+					{
+						new ProductInventory { ProductID = 2, InventoryID = 5, InventoryQuantity = 1 }
+					}
+				},
+
+				new Product
+				{
+					ProductID = 2, ProductName = "Electric Car", Quantity = 5, Price = 40000,
+					ProductInventories =
+					{
+						new ProductInventory { ProductID = 2, InventoryID = 6, InventoryQuantity = 1 }
+					}
+				},
 			};
 		}
 

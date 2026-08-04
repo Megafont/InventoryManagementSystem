@@ -15,7 +15,9 @@ namespace IMS.Plugins.InMemory
 				new Inventory { InventoryID = 1, InventoryName = "Bike Seat", Quantity = 10, Price = 2 },
 				new Inventory { InventoryID = 2, InventoryName = "Bike Body", Quantity = 10, Price = 15 },
 				new Inventory { InventoryID = 3, InventoryName = "Bike Wheels", Quantity = 20, Price = 8 },
-				new Inventory { InventoryID = 4, InventoryName = "Bike Pedals", Quantity = 20, Price = 1 }
+				new Inventory { InventoryID = 4, InventoryName = "Bike Pedals", Quantity = 20, Price = 1 },
+				new Inventory { InventoryID = 5, InventoryName = "Gas Engine", Quantity = 50, Price = 1500 },
+				new Inventory { InventoryID = 6, InventoryName = "Electric Engine", Quantity = 30, Price = 4000 }
 			};
 		}
 
