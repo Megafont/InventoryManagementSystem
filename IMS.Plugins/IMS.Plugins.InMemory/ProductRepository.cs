@@ -20,10 +20,10 @@ namespace IMS.Plugins.InMemory
 					ProductID = 1, ProductName = "Bike", Quantity = 10, Price = 150,
 					ProductInventories =
 					{
-						new ProductInventory { ProductID = 1, InventoryID = 1, InventoryQuantity = 1 }, // bike seat
-						new ProductInventory { ProductID = 1, InventoryID = 2, InventoryQuantity = 1 }, // bike body
-						new ProductInventory { ProductID = 1, InventoryID = 3, InventoryQuantity = 2 }, // bike wheels
-						new ProductInventory { ProductID = 1, InventoryID = 4, InventoryQuantity = 2 }  // bike pedals
+						new ProductInventory { ProductID = 1, InventoryID = 1, InventoryQuantity = 1 }, // Bike seat
+						new ProductInventory { ProductID = 1, InventoryID = 2, InventoryQuantity = 1 }, // Bike body
+						new ProductInventory { ProductID = 1, InventoryID = 3, InventoryQuantity = 2 }, // Bike wheels
+						new ProductInventory { ProductID = 1, InventoryID = 4, InventoryQuantity = 2 }  // Bike pedals
 					}
 				},
 
@@ -32,7 +32,9 @@ namespace IMS.Plugins.InMemory
 					ProductID = 2, ProductName = "Car", Quantity = 5, Price = 25000, 
 					ProductInventories =
 					{
-						new ProductInventory { ProductID = 2, InventoryID = 5, InventoryQuantity = 1 }
+						new ProductInventory { ProductID = 2, InventoryID = 5, InventoryQuantity = 1 }, // Gas Engine
+						new ProductInventory { ProductID = 2, InventoryID = 7, InventoryQuantity = 4 }, // Car Tires
+						new ProductInventory { ProductID = 2, InventoryID = 8, InventoryQuantity = 1 }  // Chassis
 					}
 				},
 
@@ -41,7 +43,9 @@ namespace IMS.Plugins.InMemory
 					ProductID = 2, ProductName = "Electric Car", Quantity = 5, Price = 40000,
 					ProductInventories =
 					{
-						new ProductInventory { ProductID = 2, InventoryID = 6, InventoryQuantity = 1 }
+						new ProductInventory { ProductID = 2, InventoryID = 6, InventoryQuantity = 1 }, // Electric Engine
+						new ProductInventory { ProductID = 2, InventoryID = 7, InventoryQuantity = 4 }, // Car Tires
+						new ProductInventory { ProductID = 2, InventoryID = 8, InventoryQuantity = 1 }, // Chassis
 					}
 				},
 			};
