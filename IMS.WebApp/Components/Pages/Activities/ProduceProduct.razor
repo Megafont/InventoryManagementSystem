@@ -164,6 +164,15 @@
         }
     }
 
+    /// <summary>
+    /// Checks the production number is available.
+    /// </summary>
+    /// <remarks>>
+    /// This validation is handled this way rather than using a validation attribute like we did for stuff like ensuring there is enough inventory quantity to produce a product.
+    /// That is because this validation needs to access the database, which means it has to be async. Validation attributes cannot be async, so I did this instead after some Google searching.
+    /// </remarks>
+    /// <param name="productionNumber">The production number to check.</param>
+    /// <returns>True if it's available and false otherwise.</returns>
     private async Task<bool> IsProductionNumberAvailable(string productionNumber)
     {
         ProductTransaction? transaction = await ProductTransactionRepository.GetProductTransactionByProductionNumberAsync(productionNumber);
