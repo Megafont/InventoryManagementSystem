@@ -54,6 +54,7 @@
                 <th>Date</th>
                 <th>Inventory</th>
                 <th>Transaction Type</th>
+                <th>Amount</th>
                 <th>Quantity Before</th>
                 <th>Quantity After</th>
                 <th>Unit Price</th>
@@ -78,6 +79,7 @@
                             <text>Produce</text>
                         }
                     </td>
+                        <td>@Math.Abs(inventoryTransaction.QuantityAfter - inventoryTransaction.QuantityBefore)</td>
                     <td>@inventoryTransaction.QuantityBefore</td>
                     <td>@inventoryTransaction.QuantityAfter</td>
                     <td>@inventoryTransaction.UnitPrice?.ToString("c")</td>

@@ -1,5 +1,6 @@
 ﻿@page "/sellproduct"
 
+@using IMS.UseCases.PluginInterfaces
 @using static IMS.WebApp.Components.Controls.Common.AutoCompleteComponent;
 
 <!--Makes this page require being logged in.-->
@@ -15,18 +16,21 @@
 @inject IGetProductByIdUseCase GetProductByIdUseCase
 @inject ISellProductUseCase SellProductUseCase
 
+@inject IProductTransactionRepository ProductTransactionRepository
+
 <h3>Sell Product</h3>
 <br />
 
-<EditForm id="sell-form" Model="_sellViewModel" OnValidSubmit="Sell">
+<EditForm id="sell-form" EditContext="_editContext" OnValidSubmit="Sell">
     <DataAnnotationsValidator />
     <ValidationSummary />
+    @if (_checkingSalesOrderNumber) { <span>Checking...</span> }
 
     <div class="form-group">
         <label for="po">Sales Order #</label>
         <InputText id="po"
                    class="form-control"
-                   @bind-Value="_sellViewModel.SalesOrderNumber" />
+                   @bind-Value="_sellProductViewModel.SalesOrderNumber" />
     </div>
 
     <br />
@@ -47,7 +51,7 @@
         <label for="qty">Quantity</label>
         <InputNumber id="qty"
                      class="form-control"
-                     @bind-Value="_sellViewModel.QuantityToSell" />
+                     @bind-Value="_sellProductViewModel.QuantityToSell" />
     </div>
     
     <br />
@@ -56,7 +60,7 @@
         <label for="price">Unit Price</label>
         <InputNumber id="price"
                      class="form-control"
-                     @bind-Value="_sellViewModel.UnitPrice" />
+                     @bind-Value="_sellProductViewModel.UnitPrice" />
     </div>
 
     <br />
@@ -70,14 +74,23 @@
 
 @code
 {
-    private SellProductViewModel _sellViewModel = new();
+    private SellProductViewModel _sellProductViewModel = new();
     private Product? _selectedProduct;
 
     private AuthenticationState? _authenticationState;
 
+    private EditContext _editContext = default!;
+    private ValidationMessageStore _extraValidationMessages = default!;
+    private bool _checkingSalesOrderNumber;
+
+
     protected override async Task OnInitializedAsync()
     {
         _authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+        _editContext = new(_sellProductViewModel);
+        _extraValidationMessages = new(_editContext);
+        _editContext.OnFieldChanged += (_, _) => _extraValidationMessages.Clear();
     }
 
     protected override void OnAfterRender(bool firstRender)
@@ -126,9 +139,9 @@
     {
         _selectedProduct = await GetProductByIdUseCase.ExecuteAsync(item.ID);
 
-        _sellViewModel.ProductID = item.ID;
-        _sellViewModel.Product = _selectedProduct;
-        _sellViewModel.UnitPrice = _selectedProduct.Price;
+        _sellProductViewModel.ProductID = item.ID;
+        _sellProductViewModel.Product = _selectedProduct;
+        _sellProductViewModel.UnitPrice = _selectedProduct.Price;
     }
 
     private async Task Sell()
@@ -139,18 +152,45 @@
         {
             userName = _authenticationState.User.Identity.Name ?? string.Empty;
 
-            await SellProductUseCase.ExecuteAsync(
-                _sellViewModel.SalesOrderNumber,
-                _selectedProduct,
-                _sellViewModel.QuantityToSell,
-                _sellViewModel.UnitPrice,
-                userName
-            );
+            _checkingSalesOrderNumber = true;
+            if (await IsSalesOrderNumberAvailable(_sellProductViewModel.SalesOrderNumber))
+            {
+                await SellProductUseCase.ExecuteAsync(
+                    _sellProductViewModel.SalesOrderNumber,
+                    _selectedProduct,
+                    _sellProductViewModel.QuantityToSell,
+                    _sellProductViewModel.UnitPrice,
+                    userName
+                );
 
-            // Create a new SellProductViewModel. This causes the UI to be cleared since this variable now has all empty fields.
-            _sellViewModel = new();
+                // Create a new SellProductViewModel. This causes the UI to be cleared since this variable now has all empty fields.
+                _sellProductViewModel = new();
 
-            _selectedProduct = null;
+                // Re-create the EditContext and ValidationMessageStore so they are bound to the new view model instance.
+                _editContext = new(_sellProductViewModel);
+                _extraValidationMessages = new(_editContext);
+                _editContext.OnFieldChanged += (_, _) => _extraValidationMessages.Clear();
+
+                _selectedProduct = null;
+            }
         }
+    }
+
+    private async Task<bool> IsSalesOrderNumberAvailable(string salesOrderNumber)
+    {
+        ProductTransaction? transaction = await ProductTransactionRepository.GetProductTransactionBySalesOrderNumberAsync(salesOrderNumber);
+        _checkingSalesOrderNumber = false;
+
+
+        if (transaction != null)
+        {
+            _extraValidationMessages.Add(() => _sellProductViewModel.SalesOrderNumber!,
+                $"The sales order # ({_sellProductViewModel.SalesOrderNumber}) is already in use by another product transaction in the database!");
+            _editContext.NotifyValidationStateChanged();
+
+            return false;
+        }
+
+        return true;
     }
 }

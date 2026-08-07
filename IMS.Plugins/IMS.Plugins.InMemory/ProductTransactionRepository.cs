@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using IMS.CoreBusiness;
+﻿using IMS.CoreBusiness;
 using IMS.CoreBusiness.Validations;
 using IMS.UseCases.PluginInterfaces;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Xml.Linq;
 
 namespace IMS.Plugins.InMemory
 {
@@ -80,7 +81,7 @@ namespace IMS.Plugins.InMemory
 		{
 			_productTransactions.Add(new ProductTransaction
 			{
-				ProductionNumber = salesOrderNumber,
+				SalesOrderNumber = salesOrderNumber,
 				ProductID = product.ProductID,
 				QuantityBefore = product.Quantity,
 				ActivityType = ProductTransactionTypes.SellProduct,
@@ -127,6 +128,16 @@ namespace IMS.Plugins.InMemory
 
 			// Return the search results.
 			return results;
+		}
+
+		public async Task<ProductTransaction?> GetProductTransactionByProductionNumberAsync(string productionNumber)
+		{
+			return _productTransactions.FirstOrDefault(x => x.ProductionNumber == productionNumber);
+		}
+
+		public async Task<ProductTransaction?> GetProductTransactionBySalesOrderNumberAsync(string salesOrderNumber)
+		{
+			return _productTransactions.FirstOrDefault(x => x.SalesOrderNumber == salesOrderNumber);
 		}
 	}
 }

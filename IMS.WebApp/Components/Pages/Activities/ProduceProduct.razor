@@ -1,12 +1,13 @@
 ﻿@page "/produceproduct"
 
+@using IMS.UseCases.PluginInterfaces
+@using static IMS.WebApp.Components.Controls.Common.AutoCompleteComponent
+
 <!--Makes this page require being logged in.-->
 <!--You can put multiple instances of the Authorize attribute to require more than one policy on this page.-->
 @attribute [Authorize(Policy = "Production")] 
 
 @rendermode InteractiveServer
-
-@using static IMS.WebApp.Components.Controls.Common.AutoCompleteComponent
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IJSRuntime JSRuntime
@@ -15,18 +16,21 @@
 @inject IGetProductByIdUseCase GetProductByIdUseCase
 @inject IProduceProductUseCase ProduceProductUseCase
 
+@inject IProductTransactionRepository ProductTransactionRepository
+
 <h3>Produce Product</h3>
 <br/>
 
-<EditForm id="produce-form" Model="_produceViewModel" OnValidSubmit="Produce">
+<EditForm id="produce-form" EditContext="_editContext" OnValidSubmit="Produce">
     <DataAnnotationsValidator />
     <ValidationSummary />
+    @if (_checkingProductionNumber) { <span>Checking...</span> }
 
     <div class="form-group">
         <label for="po">Production #</label>
         <InputText id="po"
                    class="form-control"
-                   @bind-Value="_produceViewModel.ProductionNumber" />
+                   @bind-Value="_produceProductViewModel.ProductionNumber" />
     </div>
 
     <br />
@@ -47,7 +51,7 @@
         <label for="qty">Quantity</label>
         <InputNumber id="qty"
                      class="form-control"
-                     @bind-Value="_produceViewModel.QuantityToProduce" />
+                     @bind-Value="_produceProductViewModel.QuantityToProduce" />
     </div>
 
     <br />
@@ -61,13 +65,23 @@
 
 @code 
 {
-    private ProduceProductViewModel _produceViewModel = new();
+    private ProduceProductViewModel _produceProductViewModel = new();
     private Product? _selectedProduct;
+
     private AuthenticationState? _authenticationState;
+
+    private EditContext _editContext = default!;
+    private ValidationMessageStore _extraValidationMessages = default!;
+    private bool _checkingProductionNumber;
+
 
     protected override async Task OnInitializedAsync()
     {
         _authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+        _editContext = new(_produceProductViewModel);
+        _extraValidationMessages = new(_editContext);
+        _editContext.OnFieldChanged += (_, _) => _extraValidationMessages.Clear();
     }
 
     protected override void OnAfterRender(bool firstRender)
@@ -116,8 +130,8 @@
     {
         _selectedProduct = await GetProductByIdUseCase.ExecuteAsync(item.ID);
 
-        _produceViewModel.ProductID = item.ID;
-        _produceViewModel.Product = _selectedProduct;
+        _produceProductViewModel.ProductID = item.ID;
+        _produceProductViewModel.Product = _selectedProduct;
     }
 
     private async Task Produce()
@@ -128,16 +142,43 @@
         {
             userName = _authenticationState.User.Identity.Name ?? string.Empty;
 
-            await ProduceProductUseCase.ExecuteAsync(
-                _produceViewModel.ProductionNumber,
-                _selectedProduct,
-                _produceViewModel.QuantityToProduce,
-                userName);
+            _checkingProductionNumber = true;
+            if (await IsProductionNumberAvailable(_produceProductViewModel.ProductionNumber))
+            {
+                await ProduceProductUseCase.ExecuteAsync(
+                    _produceProductViewModel.ProductionNumber,
+                    _selectedProduct,
+                    _produceProductViewModel.QuantityToProduce,
+                    userName);
 
-            // Create a new ProduceProductViewModel. This causes the UI to be cleared since this variable now has all empty fields.
-            _produceViewModel = new();
+                // Create a new ProduceProductViewModel. This causes the UI to be cleared since this variable now has all empty fields.
+                _produceProductViewModel = new();
 
-            _selectedProduct = null;
+                // Re-create the EditContext and ValidationMessageStore so they are bound to the new view model instance.
+                _editContext = new(_produceProductViewModel);
+                _extraValidationMessages = new(_editContext);
+                _editContext.OnFieldChanged += (_, _) => _extraValidationMessages.Clear();
+
+                _selectedProduct = null;
+            }
         }
+    }
+
+    private async Task<bool> IsProductionNumberAvailable(string productionNumber)
+    {
+        ProductTransaction? transaction = await ProductTransactionRepository.GetProductTransactionByProductionNumberAsync(productionNumber);
+        _checkingProductionNumber = false;
+
+
+        if (transaction != null)
+        {
+            _extraValidationMessages.Add(() => _produceProductViewModel.ProductionNumber!,
+                $"The production # ({_produceProductViewModel.ProductionNumber}) is already in use by another product transaction in the database!");
+            _editContext.NotifyValidationStateChanged();
+
+            return false;
+        }
+
+        return true;
     }
 }

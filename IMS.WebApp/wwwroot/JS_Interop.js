@@ -8,7 +8,7 @@ function preventFormSubmission(formId)
     document.getElementById(`${formId}`).addEventListener('keydown', function (event)
     {
         // Logs the form ID in the browser's developer console.
-        console.Log(formId);
+        console.log(formId);
 
         if (event.key == "Enter")
         {

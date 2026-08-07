@@ -7,6 +7,7 @@ namespace IMS.WebApp.ViewModels
 	public class ProduceProductViewModel
 	{
 		[Required]
+		//[ProduceProduct_EnsureProductionNumberIsUnique]
 		public string ProductionNumber { get; set; } = string.Empty;
 
 		// This range starts at 1, as this confirms that the user has selected a product. Otherwise, this value would be 0.

@@ -2,11 +2,14 @@
 @rendermode InteractiveServer
 
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+@implements IAsyncDisposable
 
 <!--This layout is the Navbar component from https://getbootstrap.com/docs/5.3/components/navbar/-->
 <!--This code was modified in the course, so it is not identical to the code from that link, though.-->
 
-<nav class="navbar navbar-expand-lg bg-dark navbar-dark">
+<nav class="navbar navbar-expand-lg bg-dark navbar-dark" @onclick="CollapseAllDropdownMenus">
     <div class="container-fluid">
         <a class="navbar-brand" href="#">Inventory Management</a>
         
@@ -34,14 +37,15 @@
                         </NavLink>
                     </div>
                 </li>
-
-                <li class="nav-item dropdown">
+                
+                <!--onclick:stoppropogation stops an unhandled click event from bubbling up to the parent object.-->
+                <li class="nav-item dropdown" @onclick:stopPropagation>
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" @onclick="ToggleActivitiesDropdown">
                         Activities
                     </a>
                     @if (!_collapseActivitiesDropdown)
                     {
-                        <ul class="dropdown-menu show bg-dark-subtle">
+                        <ul class="dropdown-menu show bg-dark-subtle" @onclick="CollapseAllDropdownMenus">
                             <li>
                                 <NavLink class="dropdown-item" href="purchaseinventory">
                                     <span class="bi bi-purchase-inventories-nav-menu" aria-hidden="true"></span> Purchase Inventory
@@ -61,13 +65,13 @@
                     }
                 </li>
 
-                <li class="nav-item dropdown">
+                <li class="nav-item dropdown" @onclick:stopPropagation>
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" @onclick="ToggleReportsDropdown">
                         Reports
                     </a>
                     @if (!_collapseReportsDropdown)
                     {
-                        <ul class="dropdown-menu show bg-dark-subtle">
+                        <ul class="dropdown-menu show bg-dark-subtle" @onclick="CollapseAllDropdownMenus">
                             <li>
                                 <NavLink class="dropdown-item" href="inventoryreport">
                                     <span class="bi bi-inventories-report-nav-menu" aria-hidden="true"></span> Inventory Report
@@ -130,6 +134,8 @@
     private bool _collapseActivitiesDropdown = true;
     private bool _collapseReportsDropdown = true;
 
+    private IJSObjectReference? _jsModule;
+    private DotNetObjectReference<TopNavBarComponent>? _dotNetRef;
 
     protected override void OnInitialized()
     {
@@ -137,14 +143,34 @@
         NavigationManager.LocationChanged += OnLocationChanged;
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _jsModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Components/Layout/TopNavBarComponent.razor.js");
+            _dotNetRef = DotNetObjectReference.Create(this);
+            await _jsModule.InvokeVoidAsync("setupOutsideClickListener", _dotNetRef);
+        }
+    }
+
+    [JSInvokable]
+    public void CloseDropdownsFromOutside()
+    {
+        CollapseAllDropdownMenus();
+        StateHasChanged();
+    }
+
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
         currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        CollapseAllDropdownMenus();
         StateHasChanged();
     }
 
     private void ToggleMenu()
     {
+        CollapseAllDropdownMenus();
+
         _collapseNavMenu = !_collapseNavMenu;
 
         // This variable is inserted in the HTML code at the top of this file. Since this component is using server interactive rendering, it will update.
@@ -154,8 +180,8 @@
 
     /// <summary>
     /// This method is called when the user clicks on the Activities dropdown menu in the navbar.
-    /// NOTE: This method also gets called when the user clicks on one of the dropdown items in this menu as well.
-    ///       This is because the click event bubbles up to the parent page element, which does have an onclick handler.
+    /// The @onclick:stopPropagation directive on the parent &lt;li&gt; prevents clicks inside
+    /// this dropdown from bubbling up to the nav's click handler or the document-level listener.
     /// </summary>
     private void ToggleActivitiesDropdown()
     {
@@ -165,8 +191,8 @@
 
     /// <summary>
     /// This method is called when the user clicks on the Reports dropdown menu in the navbar.
-    /// NOTE: This method also gets called when the user clicks on one of the dropdown items in this menu as well.
-    ///       This is because the click event bubbles up to the parent page element, which does have an onclick handler.
+    /// The @onclick:stopPropagation directive on the parent &lt;li&gt; prevents clicks inside
+    /// this dropdown from bubbling up to the nav's click handler or the document-level listener.
     /// </summary>
     private void ToggleReportsDropdown()
     {
@@ -180,9 +206,16 @@
         _collapseReportsDropdown = true;
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         NavigationManager.LocationChanged -= OnLocationChanged;
+
+        if (_jsModule is not null)
+        {
+            await _jsModule.InvokeVoidAsync("cleanupOutsideClickListener");
+            await _jsModule.DisposeAsync();
+        }
+        _dotNetRef?.Dispose();
     }
 
 }

@@ -91,7 +91,7 @@ namespace IMS.Plugins.InMemory
 
 			db.ProductTransactions?.Add(new ProductTransaction
 			{
-				ProductionNumber = salesOrderNumber,
+				SalesOrderNumber = salesOrderNumber,
 				ProductID = product.ProductID,
 				QuantityBefore = product.Quantity,
 				ActivityType = ProductTransactionTypes.SellProduct,
@@ -124,6 +124,26 @@ namespace IMS.Plugins.InMemory
 			// The Include() call is telling Entity Framework Core that we want the returned product transactions
 			// to include the Product records they link to.
 			return await results.Include(x => x.Product).ToListAsync();
+		}
+
+		public async Task<ProductTransaction?> GetProductTransactionByProductionNumberAsync(string productionNumber)
+		{
+			// This is the same as a using block, except that it means this variable will be disposed when it goes out of scope (aka when this function ends).
+			using IMS_Db_Context db = _contextFactory.CreateDbContext();
+
+			ProductTransaction transaction = await db.ProductTransactions.FirstOrDefaultAsync(pt => pt.ProductionNumber == productionNumber);
+
+			return transaction;
+		}
+
+		public async Task<ProductTransaction?> GetProductTransactionBySalesOrderNumberAsync(string salesOrderNumber)
+		{
+			// This is the same as a using block, except that it means this variable will be disposed when it goes out of scope (aka when this function ends).
+			using IMS_Db_Context db = _contextFactory.CreateDbContext();
+
+			ProductTransaction transaction = await db.ProductTransactions.FirstOrDefaultAsync(pt => pt.SalesOrderNumber == salesOrderNumber);
+
+			return transaction;
 		}
 	}
 }

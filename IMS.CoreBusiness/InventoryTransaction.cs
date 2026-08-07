@@ -22,7 +22,6 @@ namespace IMS.CoreBusiness
 		[Required]
 		public int QuantityAfter { get; set; }
 
-		[Required]
 		public decimal? UnitPrice { get; set; }
 
 		[Required]
